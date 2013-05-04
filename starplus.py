@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats
 from scipy.io import loadmat
 from numpy.linalg import inv
-from math import log, exp, sqrt, gamma, pi
+from math import log, exp, sqrt, gamma, pi, fabs
 
 
 # set random seed
@@ -106,7 +106,7 @@ def log_Ising(j, a, theta, ga):    # log of Ising prior
                 s += w(v, k)
         if roi[v] in G: # information based on anatomical region
             a_T += a*ga[v, j]
-    return a_T + theta[0, j]*s
+    return a_T + theta[j]*s
 
 # for sample correlation estimation of rho    
 # def sig_y(rho, y):  # sigma^2 of y
@@ -204,7 +204,7 @@ def ga_prop(v, j, a, ga, theta):   # proposal probability for updating gamma
     part = 0
     for k in neigh(v):  # second part in proposal distribution
         part += w(v, k)*(1-2*ga[k, j])
-    return 1/(1 + exp(-a + theta[0, j]*part))
+    return 1/(1 + exp(-a + theta[j]*part))
     
 def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
     return (1+tp)**(-ga_star/2)*S_1**(tp/2)/((1+tp)**(-ga/2)*S_2**(tp/2))
@@ -242,12 +242,12 @@ def log_const_theta(j, theta, theta_star, a, ga):  # log normalizing constant in
     
 def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     theta_max = 2   # theta_max
-    if theta_star[0, j] > theta_max or theta_star < 0:
+    if theta_star[j] > theta_max or theta_star < 0:
         output = 0
-    elif theta[0, j] > theta_max or theta < 0:
+    elif theta[j] > theta_max or theta < 0:
         output = 1
     else:
-        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(Ising_power(j, 0, theta_star, ga_cur) - Ising_power(j, 0, theta, ga_cur))+log(scipy.stats.norm.pdf(theta[0, j], theta_cur[0, j], 1))-log(scipy.stats.norm.pdf(theta_star[0, j], theta_cur[0, j], 1))
+        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(Ising_power(j, 0, theta_star, ga_cur) - Ising_power(j, 0, theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1))-log(scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
         output = exp(log_output)
     return
     
