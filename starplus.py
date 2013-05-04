@@ -331,7 +331,7 @@ for r in xrange(rep):   # r replicates
         if roi[v] in G:
             ga[0][v, 2:4] = 1
     n = 0   # iterations
-    while n < 2:    # mcmc simulation
+    while n < 1:    # mcmc simulation
         n += 1  # counts
         #rho_cur = rho[n-1, :]   # latest rho
         theta_cur = np.copy(theta[n-1, :])   # latest theta
