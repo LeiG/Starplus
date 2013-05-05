@@ -242,14 +242,14 @@ def log_const_theta(j, theta, theta_star, a, ga):  # log normalizing constant in
     
 def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     theta_max = 2   # theta_max
-    if theta_star[j] > theta_max or theta_star < 0:
+    if theta_star[j] > theta_max or theta_star[j] < 0:
         output = 0
-    elif theta[j] > theta_max or theta < 0:
+    elif theta[j] > theta_max or theta[j] < 0:
         output = 1
     else:
         log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(Ising_power(j, 0, theta_star, ga_cur) - Ising_power(j, 0, theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1))-log(scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
         output = exp(log_output)
-    return
+    return output
     
 def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
     cur = np.copy(ga_cur)
@@ -263,8 +263,8 @@ def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
 def update_theta(v, j, theta_cur):   # metropolis hastings for update gamma
     cur = np.copy(theta_cur)
     temp = np.copy(theta_cur)
-    temp[0, j] = np.random.normal(cur[0, j], 1)  # generate proposal r.v.
-    r = ratio_theta()    # Hastings ratio
+    temp[j] = np.random.normal(cur[j], 1)  # generate proposal r.v.
+    r = ratio_theta(j, theta_cur, temp)    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
     cur = temp*(r > u)+cur*(r < u)    # update theta[j]
     return cur
