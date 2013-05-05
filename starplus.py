@@ -247,7 +247,7 @@ def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     elif theta[j] > theta_max or theta[j] < 0:
         output = 1
     else:
-        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(Ising_power(j, 0, theta_star, ga_cur) - Ising_power(j, 0, theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1))-log(scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
+        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(log_Ising(j, 0, theta_star, ga_cur) - log_Ising(j, 0, theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1))-log(scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
         output = exp(log_output)
     return output
     
