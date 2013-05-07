@@ -212,32 +212,50 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 # def ratio_rho(rho_star, rho):   # Hastings ratio for updating rho
 #     return
 
-def log_const_theta(j, theta, theta_star, a, ga):  # log normalizing constant in Hastings ratio for updating theta
-    # path sampling with alpha = (q_1*q_2)^(-1/2)
+# bridge sampling for normalizing constant
+# def log_const_theta(j, theta, theta_star, a, ga):  # log normalizing constant in Hastings ratio for updating theta
+#     # bridge sampling with alpha = (q_1*q_2)^(-1/2)
+#     nsample = 1 # number of samples
+#     ga_1 = np.copy(ga)
+#     ga_2 = np.copy(ga)
+#     r_1 = []    # log r estimate nominator
+#     r_2 = []    # log r estimate denominator
+#     for i in xrange(nsample):
+#         for v in xrange(N):
+#             ga_1[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_1, theta))
+#             ga_2[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_2, theta_star))
+#         r_1.append(0.5*(log_Ising(j, a, theta, ga_2) - log_Ising(j, a, theta_star, ga_2)))
+#         r_2.append(0.5*(log_Ising(j, a, theta_star, ga_1) - log_Ising(j, a, theta, ga_1)))
+#     if max(r_1) > 0:
+#         A_1 = max(r_1)
+#     else:
+#         A_1 = -min(r_1)
+#     if max(r_2) > 0:
+#         A_2 = max(r_2)
+#     else:
+#         A_2 = -min(r_2)
+#     r_1 = np.array(r_1) - A_1
+#     r_2 = np.array(r_2) - A_2
+#     r_1 = sum([exp(x) for x in r_1])       
+#     r_2 = sum([exp(x) for x in r_2])
+#     output = A_1+r_1 - (A_2+r_2)
+#     return output
+    
+# path sampling for normalizing constant
+def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
+    # path sampling with uniform prior on theta
     nsample = 1 # number of samples
-    ga_1 = np.copy(ga)
-    ga_2 = np.copy(ga)
-    r_1 = []    # log r estimate nominator
-    r_2 = []    # log r estimate denominator
+    l_1 = min(theta[j], theta_star[j])  # lower bound
+    l_2 = max(theta[j], theta_star[j])  # upper bound
+    gam = np.copy(ga)
+    theta_tran = np.copy(theta)
+    sample = []
     for i in xrange(nsample):
+        theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
         for v in xrange(N):
-            ga_1[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_1, theta))
-            ga_2[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_2, theta_star))
-        r_1.append(0.5*(log_Ising(j, a, theta, ga_2) - log_Ising(j, a, theta_star, ga_2)))
-        r_2.append(0.5*(log_Ising(j, a, theta_star, ga_1) - log_Ising(j, a, theta, ga_1)))
-    if max(r_1) > 0:
-        A_1 = max(r_1)
-    else:
-        A_1 = -min(r_1)
-    if max(r_2) > 0:
-        A_2 = max(r_2)
-    else:
-        A_2 = -min(r_2)
-    r_1 = np.array(r_1) - A_1
-    r_2 = np.array(r_2) - A_2
-    r_1 = sum([exp(x) for x in r_1])       
-    r_2 = sum([exp(x) for x in r_2])
-    output = A_1+r_1 - (A_2+r_2)
+            gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
+        sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
+    output = -np.average(sample)
     return output
     
 def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
@@ -247,7 +265,7 @@ def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     elif theta[j] > theta_max or theta[j] < 0:
         output = 1
     else:
-        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(log_Ising(j, 0, theta_star, ga_cur) - log_Ising(j, 0, theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1))-log(scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
+        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(log_Ising(j, 0, theta_star-theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1)/scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
         output = exp(log_output)
     return output
     
