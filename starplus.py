@@ -269,7 +269,10 @@ def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
         output = 1
     else:
         log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+log_Ising(j, 0, theta_star-theta, ga_cur)+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1)/scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
-        output = exp(log_output)
+        if log_output > 0:
+            output = 1
+        else:
+            output = exp(log_output)
     return output
     
 def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
