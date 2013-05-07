@@ -244,7 +244,7 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 # path sampling for normalizing constant
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
     # path sampling with uniform prior on theta
-    nsample = 1 # number of samples
+    nsample = 100 # number of samples
     l_1 = min(theta[j], theta_star[j])  # lower bound
     l_2 = max(theta[j], theta_star[j])  # upper bound
     gam = np.copy(ga)
@@ -268,7 +268,7 @@ def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     elif theta[j] > theta_max or theta[j] < 0:
         output = 1
     else:
-        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+(log_Ising(j, 0, theta_star-theta, ga_cur))+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1)/scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
+        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+log_Ising(j, 0, theta_star-theta, ga_cur)+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1)/scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
         output = exp(log_output)
     return output
     
@@ -285,7 +285,7 @@ def update_theta(v, j, theta_cur):   # metropolis hastings for update gamma
     cur = np.copy(theta_cur)
     temp = np.copy(theta_cur)
     temp[j] = np.random.normal(cur[j], 1)  # generate proposal r.v.
-    r = ratio_theta(j, theta_cur, temp)    # Hastings ratio
+    r = ratio_theta(j, cur, temp)    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
     cur = temp*(r > u)+cur*(r < u)    # update theta[j]
     return cur
