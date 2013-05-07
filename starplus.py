@@ -244,7 +244,7 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 # path sampling for normalizing constant
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
     # path sampling with uniform prior on theta
-    nsample = 100 # number of samples
+    nsample = 10 # number of samples
     l_1 = min(theta[j], theta_star[j])  # lower bound
     l_2 = max(theta[j], theta_star[j])  # upper bound
     gam = np.copy(ga)
