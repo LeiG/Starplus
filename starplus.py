@@ -255,7 +255,10 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
         for v in xrange(N):
             gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
-    output = -np.average(sample)
+    if theta[j] > theta_star[j]:
+        output = np.average(sample)
+    else:
+        output = -np.average(sample)
     return output
     
 def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
