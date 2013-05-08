@@ -260,9 +260,6 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     else:
         output = -np.average(sample)
     return output
-
-# calculate mcse    
-def mcse():
     
 # path sampling for normalizing constant with fixed width stopping rule
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
