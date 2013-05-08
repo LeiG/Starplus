@@ -261,6 +261,26 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
         output = -np.average(sample)
     return output
     
+# path sampling for normalizing constant with fixed width stopping rule
+def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
+    # path sampling with uniform prior on theta
+    l_1 = min(theta[j], theta_star[j])  # lower bound
+    l_2 = max(theta[j], theta_star[j])  # upper bound
+    gam = np.copy(ga)
+    theta_tran = np.copy(theta)
+    sample = []
+    while 1:
+        theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
+        for v in xrange(N):
+            gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
+        sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
+        
+    if theta[j] > theta_star[j]:
+        output = np.average(sample)
+    else:
+        output = -np.average(sample)
+    return output
+    
 def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     theta_max = 2   # theta_max
     if theta_star[j] > theta_max or theta_star[j] < 0:
