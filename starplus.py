@@ -5,6 +5,8 @@
 import pickle
 import numpy as np
 import scipy.stats
+import mcmcse
+from scipy import r_
 from scipy.io import loadmat
 from numpy.linalg import inv
 from math import log, exp, sqrt, gamma, pi, fabs
@@ -242,24 +244,24 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 #     return output
     
 # path sampling for normalizing constant
-def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
-    # path sampling with uniform prior on theta
-    nsample = 10 # number of samples
-    l_1 = min(theta[j], theta_star[j])  # lower bound
-    l_2 = max(theta[j], theta_star[j])  # upper bound
-    gam = np.copy(ga)
-    theta_tran = np.copy(theta)
-    sample = []
-    for i in xrange(nsample):
-        theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
-        for v in xrange(N):
-            gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
-        sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
-    if theta[j] > theta_star[j]:
-        output = np.average(sample)
-    else:
-        output = -np.average(sample)
-    return output
+# def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
+#     # path sampling with uniform prior on theta
+#     nsample = 10 # number of samples
+#     l_1 = min(theta[j], theta_star[j])  # lower bound
+#     l_2 = max(theta[j], theta_star[j])  # upper bound
+#     gam = np.copy(ga)
+#     theta_tran = np.copy(theta)
+#     sample = []
+#     for i in xrange(nsample):
+#         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
+#         for v in xrange(N):
+#             gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
+#         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
+#     if theta[j] > theta_star[j]:
+#         output = np.average(sample)
+#     else:
+#         output = -np.average(sample)
+#     return output
     
 # path sampling for normalizing constant with fixed width stopping rule
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
@@ -269,12 +271,21 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     gam = np.copy(ga)
     theta_tran = np.copy(theta)
     sample = []
+    mcsample = r_[gam[:, j], theta_tran[j]]
+    iter = 0
     while 1:
+        iter += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
         for v in xrange(N):
             gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
-        
+        mc = r_[gam[:, j], theta_tran[j]]
+        mcsample = vstack((mcsample, mc))
+        if iter > 100:
+            se = mcmcse.mcse(mcsample.T)[1]
+            ssd = np.std(mcsample)
+            if prod(se*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
+                break          
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
