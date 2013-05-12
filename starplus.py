@@ -285,10 +285,13 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
         mc = r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
         if iter > 100:
+            e = mcmcse.mcse(mcsample.T)[0]
             se = mcmcse.mcse(mcsample.T)[1]
-            ssd = np.std(mcsample)
-            if prod(se*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
-                break          
+            ssd = np.std(mcsample, 0)
+            if prod(se.T*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
+                break
+    with open('iter.txt', 'w') as f_iter:
+        pickle.dump(iter, f_iter)        
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
