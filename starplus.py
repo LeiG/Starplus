@@ -2,6 +2,9 @@
 
 
 # import modules
+import sys
+sys.path.append('/rhome/lgong/mcmcse')
+
 import pickle
 import numpy as np
 import scipy.stats
