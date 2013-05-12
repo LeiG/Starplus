@@ -290,8 +290,8 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
             ssd = np.std(mcsample, 0)
             if prod(se.T*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
                 break
-    with open('iter.txt', 'w') as f_iter:
-        pickle.dump(iter, f_iter)        
+        with open('iter.txt', 'w') as f_iter:
+            pickle.dump(iter, f_iter)        
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
@@ -398,11 +398,11 @@ for r in xrange(rep):   # r replicates
         theta_cur = np.copy(theta[n-1, :])   # latest theta
         ga_cur = np.copy(ga[n-1])  # laste gamma
         # update gamma
-        for v in xrange(N):
-            for j in xrange(p - 2): # first two colums are one's
-                ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
-                with open('ga_cur.txt', 'w') as f_ga_cur:   # test output
-                    pickle.dump(ga_cur, f_ga_cur)
+#         for v in xrange(N):
+#             for j in xrange(p - 2): # first two colums are one's
+#                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
+#                 with open('ga_cur.txt', 'w') as f_ga_cur:   # test output
+#                     pickle.dump(ga_cur, f_ga_cur)
         # update rho
         # avoided when using point mass prior for rho
         #for v in xrange(N):
