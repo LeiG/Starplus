@@ -280,7 +280,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
             gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
         mc = r_[gam[:, j], theta_tran[j]]
-        mcsample = vstack((mcsample, mc))
+        mcsample = np.vstack((mcsample, mc))
         if iter > 100:
             se = mcmcse.mcse(mcsample.T)[1]
             ssd = np.std(mcsample)
