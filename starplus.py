@@ -89,10 +89,6 @@ def neig(v):   # find neighbors of voxel v
     output = [i for i in xrange(N) if w(v, i) == 1.]
     return output
     
-neigh = {}  # dictionary for neighborhood structure
-for v in xrange(N):
-    neigh.update({v: neig(v)})
-    
 def S(v, design, ga, cov): # set S(v, design, $\gamma_v$, $\Gamma_v$) function
     d_nonzero = design[:,np.nonzero((design*ga[1,:])[1,:])[0]] # design matrix nonzero part
     cov_inv = inv(cov)  # inverse of covariance matrix
@@ -355,6 +351,11 @@ design_m = design(t, press)
 # point mass prior for rho and sigma^2
 sig = np.ones((1, N))   # sigma^2 for each voxel
 rho = np.zeros((1, N))  # rho for each voxel
+
+# neighborhood structure
+neigh = {}  # dictionary for neighborhood structure
+for v in xrange(N):
+    neigh.update({v: neig(v)})
 
 # sample correlation estimation for rho
 # rho_0 = np.zeros((1, N))    # rho(0)
