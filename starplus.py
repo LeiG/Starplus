@@ -310,7 +310,7 @@ def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
     cur = np.copy(ga_cur)
     temp = np.copy(ga_cur)
     temp[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_cur, theta_cur))    # proposal walk
-    r = ratio_ga(temp[v, j], cur[v, j], S(v, design_m, temp, cov(t, rho[0, v])), S(v, design_m, cur, cov(t, rho[0, v])))    # Hastings ratio
+    r = ratio_ga(temp[v, j], cur[v, j], S(v, design_m, temp, cov(t, rho[v])), S(v, design_m, cur, cov(t, rho[v])))    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
     cur = temp*(r > u)+cur*(r < u)    # update gamma[v, j]
     return cur
@@ -348,15 +348,13 @@ G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']    # anatomical interes
 q = 0.8722  # threshold for activation in voxels
 rep = 1 # replicates
 design_m = design(t, press)
-# point mass prior for rho and sigma^2
-sig = np.ones((1, N))   # sigma^2 for each voxel
-rho = np.zeros((1, N))  # rho for each voxel
 
 # neighborhood structure
 neigh = {}  # dictionary for neighborhood structure
 for v in xrange(N):
     neigh.update({v: neig(v)})
 
+# point mass estimates for rho
 # sample correlation estimation for rho
 # rho_0 = np.zeros((1, N))    # rho(0)
 # for v in xrange(N):
