@@ -4,11 +4,11 @@
 # import modules
 import sys
 sys.path.append('/rhome/lgong/mcmcse')
+import mcmcse
 
 import pickle
 import numpy as np
 import scipy.stats
-import mcmcse
 from scipy import r_
 from scipy.io import loadmat
 from numpy.linalg import inv
@@ -72,10 +72,8 @@ def design(t, press):  # time dependent design matrix
     return output
     
 def cov(t, rho):    # covariance matrix capital gamma
-    output = np.zeros((np.size(t), np.size(t)))
-    for i in xrange(np.size(t)):
-        for j in xrange(np.size(t)):
-            output[i, j] = rho**fabs(i - j)
+    output = [[rho**fabs(i - j) for i in xrange(np.size(t))] for j in xrange(np.size(t))]
+    output = np.array(output)
     return output
     
 def w(v, k):    # weight of interaction between voxels
@@ -88,10 +86,7 @@ def w(v, k):    # weight of interaction between voxels
 w = np.vectorize(w) # vectorize
     
 def neigh(v):   # find neighbors of voxel v
-    output = []
-    for i in xrange(N):
-        if w(v, i) == 1.0:  # consider only 6 neighbors
-            output.append(i)
+    output = [i for i in xrange(N) if w(v, i) == 1.]
     return output
     
 def S(v, design, ga, cov): # set S(v, design, $\gamma_v$, $\Gamma_v$) function
@@ -279,8 +274,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     while 1:
         iter += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
-        for v in xrange(N):
-            gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
+        gam[:, j] = [np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran)) for v in xrange(N)]
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
         mc = r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
@@ -375,8 +369,11 @@ rho = np.zeros((1, N))  # rho for each voxel
 #     sig[0, v] = sig_y(rho[0, v], data[:, v])  # MLE for sigma^2
     
 # Newton methods for rho
-for v in xrange(N):
-    [rho[0, v], sig[0, v]] = Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v])
+rhosig = np.array([Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v]) for v in xrange(N)])
+rho = rhosig[:, 0]
+sig = rhosig[:, 1]
+# for v in xrange(N):
+#     [rho[0, v], sig[0, v]] = Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v])
 
 # write rho in file
 with open('rho.txt', 'w') as f_rho:
@@ -398,6 +395,7 @@ for r in xrange(rep):   # r replicates
         theta_cur = np.copy(theta[n-1, :])   # latest theta
         ga_cur = np.copy(ga[n-1])  # laste gamma
         # update gamma
+        ga_cur = [update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)]
 #         for v in xrange(N):
 #             for j in xrange(p - 2): # first two colums are one's
 #                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
@@ -412,10 +410,11 @@ for r in xrange(rep):   # r replicates
         #    u = np.random.uniform() # generate uniform r.v.
         #    rho_cur = temp*(r > u)+rho_cur*(r < u)    # update rho[v]
         # update theta
-        for j in xrange(p):
-            theta_cur = update_theta(v, j, theta_cur)   # update theta
-            with open('theta_cur.txt', 'w') as f_theta_cur: # test output
-                pickle.dump(theta_cur, f_theta_cur)
+        theta_cur = [update_theta(v, j, theta_cur) for j in xrange(N)]
+#         for j in xrange(p):
+#             theta_cur = update_theta(v, j, theta_cur)   # update theta
+#             with open('theta_cur.txt', 'w') as f_theta_cur: # test output
+#                 pickle.dump(theta_cur, f_theta_cur)
 #         rho = vstack([rho, rho_cur])    # updates
         theta = np.vstack([theta, theta_cur])
         ga.update({n: ga_cur})
