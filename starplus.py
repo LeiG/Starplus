@@ -85,9 +85,13 @@ def w(v, k):    # weight of interaction between voxels
     
 w = np.vectorize(w) # vectorize
     
-def neigh(v):   # find neighbors of voxel v
+def neig(v):   # find neighbors of voxel v
     output = [i for i in xrange(N) if w(v, i) == 1.]
     return output
+    
+neigh = {}  # dictionary for neighborhood structure
+for v in xrange(N):
+    neigh.update({v: neig(v)})
     
 def S(v, design, ga, cov): # set S(v, design, $\gamma_v$, $\Gamma_v$) function
     d_nonzero = design[:,np.nonzero((design*ga[1,:])[1,:])[0]] # design matrix nonzero part
@@ -101,7 +105,7 @@ def log_Ising(j, a, theta, ga):    # log of Ising prior
     s = 0   # second part in Ising prior
     a_T = 0 # first part in Ising prior
     for v in xrange(N):
-        for k in neigh(v):
+        for k in neigh[v]:
             if ga[k, j] == ga[v, j]:
                 s += w(v, k)
         if roi[v] in G: # information based on anatomical region
@@ -202,7 +206,7 @@ def Newton(f, f_der, f_hess, x_0, data, eps = 10**(-6)):    # Newton's method
     
 def ga_prop(v, j, a, ga, theta):   # proposal probability for updating gamma
     part = 0
-    for k in neigh(v):  # second part in proposal distribution
+    for k in neigh[v]:  # second part in proposal distribution
         part += w(v, k)*(1-2*ga[k, j])
     return 1/(1 + exp(-a + theta[j]*part))
     
@@ -282,10 +286,10 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
             e = mcmcse.mcse(mcsample.T)[0]
             se = mcmcse.mcse(mcsample.T)[1]
             ssd = np.std(mcsample, 0)
-            if prod(se.T*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
+            if np.prod(se.T*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
                 break
-        with open('iter.txt', 'w') as f_iter:
-            pickle.dump(iter, f_iter)        
+        with open('mcsample.txt', 'w') as f_mcsample:
+            pickle.dump(mcsample, f_mcsample)        
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
