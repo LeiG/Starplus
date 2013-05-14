@@ -400,7 +400,7 @@ for r in xrange(rep):   # r replicates
         theta_cur = np.copy(theta[n-1, :])   # latest theta
         ga_cur = np.copy(ga[n-1])  # laste gamma
         # update gamma
-        ga_cur = [update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)]
+        ga_cur = np.array([update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)])
 #         for v in xrange(N):
 #             for j in xrange(p - 2): # first two colums are one's
 #                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
@@ -415,7 +415,7 @@ for r in xrange(rep):   # r replicates
         #    u = np.random.uniform() # generate uniform r.v.
         #    rho_cur = temp*(r > u)+rho_cur*(r < u)    # update rho[v]
         # update theta
-        theta_cur = [update_theta(v, j, theta_cur) for j in xrange(N)]
+        theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
 #         for j in xrange(p):
 #             theta_cur = update_theta(v, j, theta_cur)   # update theta
 #             with open('theta_cur.txt', 'w') as f_theta_cur: # test output
