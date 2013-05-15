@@ -270,9 +270,9 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     theta_tran = np.copy(theta)
     sample = []
     mcsample = np.r_[gam[:, j], theta_tran[j]]
-    iter = 0
+    it = 0
     while 1:
-        iter += 1
+        it += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
 #         gam[:, j] = np.array([np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran)) for v in xrange(N)])
         for v in xrange(N):
@@ -280,11 +280,11 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
         mc = np.r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
-        if iter > 100:
+        if it > 100:
             e = mcmcse.mcse(mcsample.T)[0]
             se = mcmcse.mcse(mcsample.T)[1]
             ssd = np.std(mcsample, 0)
-            if np.prod(se.T*1.96+1./iter < 0.5*ssd): # 95% and epsilon = 0.5
+            if np.prod(se.T*1.96+1./it < 0.5*ssd): # 95% and epsilon = 0.5
                 break
         with open('mcsample.txt', 'w') as f_mcsample:
             pickle.dump(mcsample, f_mcsample)        
