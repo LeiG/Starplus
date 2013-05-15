@@ -269,14 +269,14 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     gam = np.copy(ga)
     theta_tran = np.copy(theta)
     sample = []
-    mcsample = r_[gam[:, j], theta_tran[j]]
+    mcsample = np.r_[gam[:, j], theta_tran[j]]
     iter = 0
     while 1:
         iter += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
         gam[:, j] = np.array([np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran)) for v in xrange(N)])
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
-        mc = r_[gam[:, j], theta_tran[j]]
+        mc = np.r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
         if iter > 100:
             e = mcmcse.mcse(mcsample.T)[0]
