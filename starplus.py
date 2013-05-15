@@ -90,7 +90,7 @@ def neig(v):   # find neighbors of voxel v
     return output
     
 def S(v, design, ga, cov): # set S(v, design, $\gamma_v$, $\Gamma_v$) function
-    d_nonzero = design[:,np.nonzero((design*ga[1,:])[1,:])[0]] # design matrix nonzero part
+    d_nonzero = design[:,np.nonzero(ga[v,:])[0]] # design matrix nonzero part
     cov_inv = inv(cov)  # inverse of covariance matrix
     y = data[:, v].reshape(tp, 1)   # response vector
     beta_head = inv((d_nonzero.T.dot(cov_inv)).dot(d_nonzero)).dot((d_nonzero.T.dot(cov_inv)).dot(y))   # beta estimate given gamma
@@ -274,7 +274,9 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     while 1:
         iter += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
-        gam[:, j] = np.array([np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran)) for v in xrange(N)])
+#         gam[:, j] = np.array([np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran)) for v in xrange(N)])
+        for v in xrange(N):
+            gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
         mc = np.r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
@@ -398,12 +400,12 @@ for r in xrange(rep):   # r replicates
         theta_cur = np.copy(theta[n-1, :])   # latest theta
         ga_cur = np.copy(ga[n-1])  # laste gamma
         # update gamma
-        ga_cur = np.array([update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)])
-#         for v in xrange(N):
-#             for j in xrange(p - 2): # first two colums are one's
-#                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
-#                 with open('ga_cur.txt', 'w') as f_ga_cur:   # test output
-#                     pickle.dump(ga_cur, f_ga_cur)
+#         ga_cur = np.array([update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)])
+        for v in xrange(N):
+            for j in xrange(p - 2): # first two colums are one's
+                ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
+                with open('ga_cur.txt', 'w') as f_ga_cur:   # test output
+                    pickle.dump(ga_cur, f_ga_cur)
         # update rho
         # avoided when using point mass prior for rho
         #for v in xrange(N):
@@ -413,11 +415,11 @@ for r in xrange(rep):   # r replicates
         #    u = np.random.uniform() # generate uniform r.v.
         #    rho_cur = temp*(r > u)+rho_cur*(r < u)    # update rho[v]
         # update theta
-        theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
-#         for j in xrange(p):
-#             theta_cur = update_theta(v, j, theta_cur)   # update theta
-#             with open('theta_cur.txt', 'w') as f_theta_cur: # test output
-#                 pickle.dump(theta_cur, f_theta_cur)
+#         theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
+        for j in xrange(p):
+            theta_cur = update_theta(v, j, theta_cur)   # update theta
+            with open('theta_cur.txt', 'w') as f_theta_cur: # test output
+                pickle.dump(theta_cur, f_theta_cur)
 #         rho = vstack([rho, rho_cur])    # updates
         theta = np.vstack([theta, theta_cur])
         ga.update({n: ga_cur})
