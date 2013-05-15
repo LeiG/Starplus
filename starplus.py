@@ -312,7 +312,7 @@ def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
     cur = np.copy(ga_cur)
     temp = np.copy(ga_cur)
     temp[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_cur, theta_cur))    # proposal walk
-    r = ratio_ga(temp[v, j], cur[v, j], S(v, design_m, temp, cov(t, rho[v])), S(v, design_m, cur, cov(t, rho[v])))    # Hastings ratio
+    r = ratio_ga(temp[v, j], cur[v, j], S(v, design_m, temp, cov_m[v], S(v, design_m, cur, cov_m[v]))    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
     cur = temp*(r > u)+cur*(r < u)    # update gamma[v, j]
     return cur
@@ -380,9 +380,20 @@ sig = rhosig[:, 1]
 # for v in xrange(N):
 #     [rho[0, v], sig[0, v]] = Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v])
 
-# write rho in file
+# write rho and sig in file
 with open('rho.txt', 'w') as f_rho:
     pickle.dump(rho, f_rho)
+with open('sig.txt', 'w') as f_sig:
+    pickle.dump(sig, f_sig)
+    
+# covariance matrix given rho estimate by MLE
+cov_m = {}
+for v in xrange(N):
+    cov_m.update({v: cov(t, rho[v])})
+    
+# write cov in file
+with open('cov.txt', 'w') as f_cov:
+    pickle.dump(cov_m, f_cov)
     
 # posterior analysis
 for r in xrange(rep):   # r replicates
