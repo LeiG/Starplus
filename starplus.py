@@ -314,7 +314,7 @@ def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
     cur = np.copy(ga_cur)
     temp = np.copy(ga_cur)
     temp[v, j] = np.random.binomial(1, ga_prop(v, j, a, ga_cur, theta_cur))    # proposal walk
-    r = ratio_ga(temp[v, j], cur[v, j], S(v, design_m, temp, cov_m[v], S(v, design_m, cur, cov_m[v]))    # Hastings ratio
+    r = ratio_ga(temp[v, j], cur[v, j], S(v, design_m, temp, cov_m[v]), S(v, design_m, cur, cov_m[v]))    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
     cur = temp*(r > u)+cur*(r < u)    # update gamma[v, j]
     return cur
@@ -416,7 +416,7 @@ for r in xrange(rep):   # r replicates
 #         ga_cur = np.array([update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)])
         for v in xrange(N):
             for j in xrange(p - 2): # first two colums are one's
-                ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
+                ga_cur[v, j] = update_ga(v, j+2, ga_cur, 0) # update gamma
         # update rho
         # avoided when using point mass prior for rho
         #for v in xrange(N):
@@ -428,7 +428,7 @@ for r in xrange(rep):   # r replicates
         # update theta
 #         theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
         for j in xrange(p):
-            theta_cur = update_theta(v, j, theta_cur)   # update theta
+            theta_cur[j] = update_theta(v, j, theta_cur)   # update theta
 #         rho = vstack([rho, rho_cur])    # updates
         theta = np.vstack([theta, theta_cur])
         ga.update({n: ga_cur})
