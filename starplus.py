@@ -416,7 +416,7 @@ for r in xrange(rep):   # r replicates
 #         ga_cur = np.array([update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)])
         for v in xrange(N):
             for j in xrange(p - 2): # first two colums are one's
-                ga_cur[v, j] = update_ga(v, j+2, ga_cur, 0) # update gamma
+                ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
         # update rho
         # avoided when using point mass prior for rho
         #for v in xrange(N):
@@ -428,7 +428,7 @@ for r in xrange(rep):   # r replicates
         # update theta
 #         theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
         for j in xrange(p):
-            theta_cur[j] = update_theta(v, j, theta_cur)   # update theta
+            theta_cur = update_theta(v, j, theta_cur)   # update theta
 #         rho = vstack([rho, rho_cur])    # updates
         theta = np.vstack([theta, theta_cur])
         ga.update({n: ga_cur})
