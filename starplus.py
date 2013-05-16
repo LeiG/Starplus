@@ -417,8 +417,6 @@ for r in xrange(rep):   # r replicates
         for v in xrange(N):
             for j in xrange(p - 2): # first two colums are one's
                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
-                with open('ga_cur.txt', 'w') as f_ga_cur:   # test output
-                    pickle.dump(ga_cur, f_ga_cur)
         # update rho
         # avoided when using point mass prior for rho
         #for v in xrange(N):
@@ -431,8 +429,6 @@ for r in xrange(rep):   # r replicates
 #         theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
         for j in xrange(p):
             theta_cur = update_theta(v, j, theta_cur)   # update theta
-            with open('theta_cur.txt', 'w') as f_theta_cur: # test output
-                pickle.dump(theta_cur, f_theta_cur)
 #         rho = vstack([rho, rho_cur])    # updates
         theta = np.vstack([theta, theta_cur])
         ga.update({n: ga_cur})
