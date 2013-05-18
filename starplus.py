@@ -290,7 +290,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
             se = mcmcse.mcse(mcsample.T)[1]
             ssd = np.std(mcsample, 0)
             with open('const.txt', 'a') as f_const:
-                pickle.dump(np.averge(sample), f_const)
+                pickle.dump(np.average(sample), f_const)
             if np.prod(se*1.645+1./it < 0.5*ssd): # 90% and epsilon = 0.5
                 break
         with open('mcsample.txt', 'w') as f_mcsample:
