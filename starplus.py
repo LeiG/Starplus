@@ -261,7 +261,7 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 #         output = -np.average(sample)
 #     return output
 
-# open file to keep track log_const
+# open file to keep track of log_const
 f_const = open('const.txt', 'w')
 f.close()
 # path sampling for normalizing constant with fixed width stopping rule
@@ -274,7 +274,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     sample = []
     mcsample = np.r_[gam[:, j], theta_tran[j]]
     it = 0  # iterations
-    thres = 5000    # low bound for check stopping rule
+    thres = 1000    # low bound for check stopping rule
     while 1:
         it += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
