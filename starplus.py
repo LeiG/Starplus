@@ -263,7 +263,7 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 
 # open file to keep track of log_const
 f_const = open('const.txt', 'w')
-f.close()
+f_const.close()
 # path sampling for normalizing constant with fixed width stopping rule
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
     # path sampling with uniform prior on theta
