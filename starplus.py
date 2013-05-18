@@ -260,7 +260,10 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 #     else:
 #         output = -np.average(sample)
 #     return output
-    
+
+# open file to keep track log_const
+f_const = open('const.txt', 'w')
+f.close()
 # path sampling for normalizing constant with fixed width stopping rule
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
     # path sampling with uniform prior on theta
@@ -270,8 +273,8 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     theta_tran = np.copy(theta)
     sample = []
     mcsample = np.r_[gam[:, j], theta_tran[j]]
-    it = 0
-    thres = 5000
+    it = 0  # iterations
+    thres = 5000    # low bound for check stopping rule
     while 1:
         it += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
@@ -286,10 +289,12 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
             e = mcmcse.mcse(mcsample.T)[0]
             se = mcmcse.mcse(mcsample.T)[1]
             ssd = np.std(mcsample, 0)
-            if np.prod(se.T*1.645+1./it < 0.5*ssd): # 90% and epsilon = 0.5
+            with open('const.txt', 'a') as f_const:
+                pickle.dump(np.averge(sample), f_const)
+            if np.prod(se*1.645+1./it < 0.5*ssd): # 90% and epsilon = 0.5
                 break
         with open('mcsample.txt', 'w') as f_mcsample:
-            pickle.dump(mcsample, f_mcsample)        
+            pickle.dump(mcsample, f_mcsample)
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
@@ -407,16 +412,22 @@ for r in xrange(rep):   # r replicates
         if roi[v] in G:
             ga[0][v, 2:4] = 1
     n = 0   # iterations
+    thresh = 1000   # lower bound for checking stopping rule
     while n < 1:    # mcmc simulation
         n += 1  # counts
         #rho_cur = rho[n-1, :]   # latest rho
         theta_cur = np.copy(theta[n-1, :])   # latest theta
         ga_cur = np.copy(ga[n-1])  # laste gamma
+        
         # update gamma
-#         ga_cur = np.array([update_ga(v, j+2, ga_cur, 0) for v in xrange(N) for j in xrange(p-2)])
         for v in xrange(N):
             for j in xrange(p - 2): # first two colums are one's
                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
+        ga.update({n: ga_cur})
+        # write ga in file
+        with open('gamma.txt', 'w') as f_ga:
+            pickle.dump(ga, f_ga)
+
         # update rho
         # avoided when using point mass prior for rho
         #for v in xrange(N):
@@ -425,19 +436,19 @@ for r in xrange(rep):   # r replicates
         #    r = ratio_rho(temp, rho_cur)    # Hastings ratio
         #    u = np.random.uniform() # generate uniform r.v.
         #    rho_cur = temp*(r > u)+rho_cur*(r < u)    # update rho[v]
+#         rho = vstack([rho, rho_cur])    # updates
+        
         # update theta
-#         theta_cur = np.array([update_theta(v, j, theta_cur) for j in xrange(N)])
         for j in xrange(p):
             theta_cur = update_theta(v, j, theta_cur)   # update theta
-#         rho = vstack([rho, rho_cur])    # updates
         theta = np.vstack([theta, theta_cur])
-        ga.update({n: ga_cur})
         # write theta in file
         with open('theta.txt', 'w') as f_theta:
             pickle.dump(theta, f_theta)
-        # write ga in file
-        with open('gamma.txt', 'w') as f_ga:
-            pickle.dump(ga, f_ga)
+
+#         if n > thresh:
+#             thresh += 1000
+             
         
 
     
