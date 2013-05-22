@@ -9,10 +9,19 @@ import mcmcse
 import pickle
 import numpy as np
 import scipy.stats
+import time
+import os
 from scipy import r_
 from scipy.io import loadmat
 from numpy.linalg import inv
 from math import log, exp, sqrt, gamma, pi, fabs
+
+
+# make new directory to store results
+dirfmt = "%4d-%02d-%02d %02d:%02d"
+current_time = time.localtime()[0:5]
+dirname = dirfmt % current_time
+os.mkdir(dirname)   # make new directory
 
 
 # set random seed
@@ -262,7 +271,7 @@ def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
 #     return output
 
 # open file to keep track of log_const
-f_const = open('const.txt', 'w')
+f_const = open(dirname+'/const.txt', 'w')
 f_const.close()
 # path sampling for normalizing constant with fixed width stopping rule
 def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant in Hastings ratio for updating theta
@@ -297,7 +306,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
 #             pickle.dump(mcsample, f_mcsample)
         if it > thres:
             thres += 50
-            with open('const.txt', 'a') as f_const:
+            with open(dirname+'/const.txt', 'a') as f_const:
                 pickle.dump(np.average(sample), f_const)
     if theta[j] > theta_star[j]:
         output = np.average(sample)
@@ -392,9 +401,9 @@ sig = rhosig[:, 1]
 #     [rho[0, v], sig[0, v]] = Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v])
 
 # write rho and sig in file
-with open('rho.txt', 'w') as f_rho:
+with open(dirname+'/rho.txt', 'w') as f_rho:
     pickle.dump(rho, f_rho)
-with open('sig.txt', 'w') as f_sig:
+with open(dirname+'/sig.txt', 'w') as f_sig:
     pickle.dump(sig, f_sig)
     
 # covariance matrix given rho estimate by MLE
@@ -403,7 +412,7 @@ for v in xrange(N):
     cov_m.update({v: cov(t, rho[v])})
     
 # write cov in file
-with open('cov.txt', 'w') as f_cov:
+with open(dirname+'/cov.txt', 'w') as f_cov:
     pickle.dump(cov_m, f_cov)
     
 # posterior analysis
@@ -429,7 +438,7 @@ for r in xrange(rep):   # r replicates
                 ga_cur = update_ga(v, j+2, ga_cur, 0) # update gamma
         ga.update({n: ga_cur})
         # write ga in file
-        with open('gamma.txt', 'w') as f_ga:
+        with open(dirname+'/gamma.txt', 'w') as f_ga:
             pickle.dump(ga, f_ga)
 
         # update rho
@@ -447,7 +456,7 @@ for r in xrange(rep):   # r replicates
             theta_cur = update_theta(v, j, theta_cur)   # update theta
         theta = np.vstack([theta, theta_cur])
         # write theta in file
-        with open('theta.txt', 'w') as f_theta:
+        with open(dirname+'/theta.txt', 'w') as f_theta:
             pickle.dump(theta, f_theta)
 
 #         if n > thresh:
