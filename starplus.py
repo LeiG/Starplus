@@ -274,7 +274,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     sample = []
     mcsample = np.r_[gam[:, j], theta_tran[j]]
     it = 0  # iterations
-    thres = 1000    # low bound for check stopping rule
+    thres = 50    # low bound for check stopping rule
     while 1:
         it += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
@@ -284,17 +284,21 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
         sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
         mc = np.r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
+#         if it > thres:
+#             thres += 50
+#             e = mcmcse.mcse(mcsample.T)[0]
+#             se = mcmcse.mcse(mcsample.T)[1]
+#             ssd = np.std(mcsample, 0)
+#             with open('const.txt', 'a') as f_const:
+#                 pickle.dump(np.average(sample), f_const)
+#             if np.prod(se*1.645+1./it < 0.5*ssd): # 90% and epsilon = 0.5
+#                 break
+#         with open('mcsample.txt', 'w') as f_mcsample:
+#             pickle.dump(mcsample, f_mcsample)
         if it > thres:
-            thres += 1000
-            e = mcmcse.mcse(mcsample.T)[0]
-            se = mcmcse.mcse(mcsample.T)[1]
-            ssd = np.std(mcsample, 0)
+            thres += 50
             with open('const.txt', 'a') as f_const:
                 pickle.dump(np.average(sample), f_const)
-            if np.prod(se*1.645+1./it < 0.5*ssd): # 90% and epsilon = 0.5
-                break
-        with open('mcsample.txt', 'w') as f_mcsample:
-            pickle.dump(mcsample, f_mcsample)
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
