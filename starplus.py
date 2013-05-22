@@ -289,7 +289,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
     sample = []
     mcsample = np.r_[gam[:, j], theta_tran[j]]
     it = 0  # iterations
-    thres = 50    # low bound for check stopping rule
+    thres = 1000    # low bound for check stopping rule
     while 1:
         it += 1
         theta_tran[j] = np.random.uniform(l_1, l_2)    # generate transitional theta
@@ -311,7 +311,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
 #         with open('mcsample.txt', 'w') as f_mcsample:
 #             pickle.dump(mcsample, f_mcsample)
         if it > thres:
-            thres += 50
+            thres += 500
             with open(dirname+'/const.txt', 'a') as f_const:
                 pickle.dump(np.average(sample), f_const)
         if it > 1000:
