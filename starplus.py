@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+'''
+Bayesian spatial variable selection model for fMRI data analysis
+'''
 
 # import modules
 import sys
@@ -113,14 +116,19 @@ def S(v, design, ga, cov): # set S(v, design, $\gamma_v$, $\Gamma_v$) function
     return output
     
 def log_Ising(j, a, theta, ga):    # log of Ising prior
-    s = 0   # second part in Ising prior
-    a_T = 0 # first part in Ising prior
-    for v in xrange(N):
-        for k in neigh[v]:
-            if ga[k, j] == ga[v, j]:
-                s += w(v, k)
-        if roi[v] in G: # information based on anatomical region
-            a_T += a*ga[v, j]
+#     s = 0   # second part in Ising prior
+#     a_T = 0 # first part in Ising prior
+#     for v in xrange(N):
+#         for k in neigh[v]:
+#             if ga[k, j] == ga[v, j]:
+#                 s += w(v, k)
+#         if roi[v] in G: # information based on anatomical region
+#             a_T += a*ga[v, j]
+    s = np.sum([w(v, k) for v in xrange(N) for k in neigh[v] if ga[k, j] == ga[v, j]])
+    if a != 0:
+        a_T = np.sum([a*ga[v, j] for v in xrange(N) if roi[v] in G])
+    else:
+        a_T = 0
     return a_T + theta[j]*s
 
 # for sample correlation estimation of rho    
@@ -138,9 +146,10 @@ def loglike_ar(x, y):   # log likelihood function for AR(1) model
         return -inf
     else:
         T = len(y)  # number of time point
-        part = 0
-        for i in xrange(T-1):
-            part += (y[i+1] - rho*y[i])**2 
+#         part = 0
+#         for i in xrange(T-1):
+#             part += (y[i+1] - rho*y[i])**2 
+        part = np.sum([(y[i+1]-rho*y[i])**2 for i in xrange(T-1)])
         return -T*log(2*pi)/2-(T-1)*log(sig*(1-rho**2))/2-part/(2*sig*(1-rho**2))-log(sig)/2-y[0]**2/(2*sig)   # log-likelihood
 
 def loglike_ar_der(x, y):   # derivative of log likelihood for AR(1) model
@@ -149,11 +158,13 @@ def loglike_ar_der(x, y):   # derivative of log likelihood for AR(1) model
     T = len(y)  # number of time point
     der_rho = []
     der_sig = []
-    part_1 = 0
-    part_2 = 0
-    for i in xrange(T-1):
-        part_1 += (y[i+1] - rho*y[i])**2
-        part_2 += (y[i+1] - rho*y[i])*y[i]
+#     part_1 = 0
+#     part_2 = 0
+#     for i in xrange(T-1):
+#         part_1 += (y[i+1] - rho*y[i])**2
+#         part_2 += (y[i+1] - rho*y[i])*y[i]
+    part_1 = np.sum([(y[i+1] - rho*y[i])**2 for i in xrange(T-1)])
+    part_2 = np.sum([(y[i+1] - rho*y[i])*y[i] for i in xrange(T-1)])
     der_rho = (T-1)*rho/(1-rho**2) - rho*part_1/(sig*(1-rho**2)**2) + part_2/(sig*(1-rho**2))
     der_sig = -(T-1)/(2*sig) + part_1/(2*(1-rho**2)*(sig**2)) - 1/(2*sig) + y[0]**2/(2*(sig**2))
     return [der_rho, der_sig]
@@ -163,13 +174,16 @@ def loglike_ar_hess(x, y):  # hessian matrix of log likelihood for AR(1) model
     sig = x[1]
     T = len(y)  # number of time point
     hess = np.zeros((2, 2))
-    part_1 = 0
-    part_2 = 0
-    part_3 = 0
-    for i in xrange(T-1):
-        part_1 += (y[i+1]-rho*y[i])**2
-        part_2 += (y[i+1]-rho*y[i])*y[i]
-        part_3 += y[i]**2
+#     part_1 = 0
+#     part_2 = 0
+#     part_3 = 0
+#     for i in xrange(T-1):
+#         part_1 += (y[i+1]-rho*y[i])**2
+#         part_2 += (y[i+1]-rho*y[i])*y[i]
+#         part_3 += y[i]**2
+    part_1 = np.sum([(y[i+1]-rho*y[i])**2 for i in xrange(T-1)])
+    part_2 = np.sum([(y[i+1]-rho*y[i])*y[i] for i in xrange(T-1)])
+    part_3 = np.sum([y[i]**2 for i in xrange(T-1)])
     hess[0, 0] = (T-1)*(1+rho**2)/((1-rho**2)**2) - (1+3*rho**2)*part_1/(sig*(1-rho**2)**3) + 4*rho*part_2/(sig*(1-rho**2)**2) - part_3/(sig*(1-rho**2))
     hess[0, 1] = rho*part_1/(((1-rho**2)**2)*(sig**2)) - part_2/((sig**2)*(1-rho**2))
     hess[1, 0] = hess[0, 1]
@@ -216,9 +230,10 @@ def Newton(f, f_der, f_hess, x_0, data, eps = 10**(-6)):    # Newton's method
 #     return (d+c)/2.
     
 def ga_prop(v, j, a, ga, theta):   # proposal probability for updating gamma
-    part = 0
-    for k in neigh[v]:  # second part in proposal distribution
-        part += w(v, k)*(1-2*ga[k, j])
+#     part = 0
+#     for k in neigh[v]:  # second part in proposal distribution
+#         part += w(v, k)*(1-2*ga[k, j])
+    part = np.sum([w(v, k)*(1-2*ga[k, j]) for k in neigh[v]])
     return 1/(1 + exp(-a + theta[j]*part))
     
 def ratio_ga(ga_star, ga, S_1, S_2): # Hastings ratio for updating gamma
