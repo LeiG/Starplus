@@ -8,7 +8,6 @@ import mcmcse
 
 import pickle
 import numpy as np
-import scipy.stats
 import time
 import os
 from scipy import r_
@@ -29,6 +28,13 @@ np.random.seed(3)
 
 
 # functions
+def normpdf(x, mean, sd):
+    var = float(sd)**2
+    pi = 3.1415926
+    denom = (2*pi*var)**.5
+    num = exp(-(float(x)-float(mean))**2/(2*var))
+    return num/denom
+
 def sti_0(t):   # initial stimulus
     if t == 0:
         return 1.0
@@ -321,7 +327,7 @@ def ratio_theta(j, theta, theta_star):  # Hastings ratio for updating theta
     elif theta[j] > theta_max or theta[j] < 0:
         output = 1
     else:
-        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+log_Ising(j, 0, theta_star-theta, ga_cur)+log(scipy.stats.norm.pdf(theta[j], theta_cur[j], 1)/scipy.stats.norm.pdf(theta_star[j], theta_cur[j], 1))
+        log_output = log_const_theta(j, theta, theta_star, a, ga_cur)+log_Ising(j, 0, theta_star-theta, ga_cur)+log(normpdf(theta[j], theta_cur[j], 1)/normpdf(theta_star[j], theta_cur[j], 1))
         if log_output > 0:
             output = 1
         else:
