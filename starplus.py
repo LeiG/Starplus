@@ -314,6 +314,8 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
             thres += 50
             with open(dirname+'/const.txt', 'a') as f_const:
                 pickle.dump(np.average(sample), f_const)
+        if it > 1000:
+            break
     if theta[j] > theta_star[j]:
         output = np.average(sample)
     else:
