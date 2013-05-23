@@ -319,12 +319,12 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
 #             e = mcmcse.mcse(mcsample.T)[0]
 #             se = mcmcse.mcse(mcsample.T)[1]
 #             ssd = np.std(mcsample, 0)
-#             with open('const.txt', 'a') as f_const:
+#             with open(dirname+'/const.txt', 'a') as f_const:
 #                 pickle.dump(np.average(sample), f_const)
 #             if np.prod(se*1.645+1./it < 0.5*ssd): # 90% and epsilon = 0.5
 #                 break
-#         with open('mcsample.txt', 'w') as f_mcsample:
-#             pickle.dump(mcsample, f_mcsample)
+        with open(dirname+'/mcsample.txt', 'w') as f_mcsample:
+            pickle.dump(mcsample, f_mcsample)
 #         if it > thres:
 #             thres += 500
 #             with open(dirname+'/const.txt', 'a') as f_const:
@@ -493,7 +493,7 @@ for r in xrange(rep):   # r replicates
         # evaluate mcse
         comb_cur = np.append(ga_cur, theta_cur)
         comb = np.vstack((comb, comb_cur))
-        with open('comb.txt', 'w') as f_comb:
+        with open(dirname+'/comb.txt', 'w') as f_comb:
             pickle.dump(comb, f_comb)  
         if n > thresh:
             thresh += 1
