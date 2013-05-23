@@ -325,11 +325,11 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
 #                 break
 #         with open('mcsample.txt', 'w') as f_mcsample:
 #             pickle.dump(mcsample, f_mcsample)
-        if it > thres:
-            thres += 500
-            with open(dirname+'/const.txt', 'a') as f_const:
-                pickle.dump(np.average(sample), f_const)
-        if it > 10000:
+#         if it > thres:
+#             thres += 500
+#             with open(dirname+'/const.txt', 'a') as f_const:
+#                 pickle.dump(np.average(sample), f_const)
+        if it > 500:
             break
     if theta[j] > theta_star[j]:
         output = np.average(sample)
@@ -359,14 +359,21 @@ def update_ga(v, j, ga_cur, a):    # metropolis hastings for update gamma
     u = np.random.uniform() # generate uniform r.v.
     cur = temp*(r > u)+cur*(r < u)    # update gamma[v, j]
     return cur
-    
+
+accept = [] # record acceptance ratio    
 def update_theta(v, j, theta_cur):   # metropolis hastings for update gamma
     cur = np.copy(theta_cur)
     temp = np.copy(theta_cur)
     temp[j] = np.random.normal(cur[j], 1)  # generate proposal r.v.
     r = ratio_theta(j, cur, temp)    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
-    cur = temp*(r > u)+cur*(r < u)    # update theta[j]
+    cur[j] = temp[j]*(r > u)+cur[j]*(r < u)    # update theta[j]
+    if cur[j] != temp[j]:
+        accept.append(0)
+    else:
+        accept.append(1)
+    with open(dirname+'/accept.txt', 'w') as f_accept:
+        pickle.dump(accept, f_accept) 
     return cur
 
 # read in .mat
@@ -447,9 +454,10 @@ for r in xrange(rep):   # r replicates
     for v in xrange(N): # for voxels in anatomical region assign gamma = 1
         if roi[v] in G:
             ga[0][v, 2:4] = 1
+    comb = np.append(ga[0].flatten(), theta.flatten())  # storage of all parameters
     n = 0   # iterations
-    thresh = 1000   # lower bound for checking stopping rule
-    while n < 1:    # mcmc simulation
+    thresh = 1   # lower bound for checking stopping rule
+    while n < 10:    # mcmc simulation
         n += 1  # counts
         #rho_cur = rho[n-1, :]   # latest rho
         theta_cur = np.copy(theta[n-1, :])   # latest theta
@@ -481,10 +489,19 @@ for r in xrange(rep):   # r replicates
         # write theta in file
         with open(dirname+'/theta.txt', 'w') as f_theta:
             pickle.dump(theta, f_theta)
-
-#         if n > thresh:
-#             thresh += 1000
-             
+        
+        # evaluate mcse
+        comb_cur = np.append(ga_cur, theta_cur)
+        comb = np.vstack((comb, comb_cur))
+        with open('comb.txt', 'w') as f_comb:
+            pickle.dump(comb, f_comb)  
+        if n > thresh:
+            thresh += 1
+            e = mcmcse.mcse(comb.T)[0]
+            se = mcmcse.mcse(comb.T)[1]
+            ssd = np.std(comb, 0)
+            if np.prod(se*1.645+1./n < 0.5*ssd): # 90% and epsilon = 0.5
+                break          
         
 
     
