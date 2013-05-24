@@ -311,7 +311,7 @@ def log_const_theta(j, theta, theta_star, a, ga):   # log normalizing constant i
 #         gam[:, j] = np.array([np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran)) for v in xrange(N)])
         for v in xrange(N):
             gam[v, j] = np.random.binomial(1, ga_prop(v, j, a, gam, theta_tran))
-        sample.append(log_Ising(j, a, np.ones((1, p))[0], gam)*(l_2-l_1))
+        sample.append(log_Ising(j, 0, np.ones((1, p))[0], gam)*(l_2-l_1))
         mc = np.r_[gam[:, j], theta_tran[j]]
         mcsample = np.vstack((mcsample, mc))
 #         if it > thres:
@@ -456,8 +456,8 @@ for r in xrange(rep):   # r replicates
             ga[0][v, 2:4] = 1
     comb = np.append(ga[0].flatten(), theta.flatten())  # storage of all parameters
     n = 0   # iterations
-    thresh = 1   # lower bound for checking stopping rule
-    while n < 10:    # mcmc simulation
+    thresh = 100   # lower bound for checking stopping rule
+    while n < 500:    # mcmc simulation
         n += 1  # counts
         #rho_cur = rho[n-1, :]   # latest rho
         theta_cur = np.copy(theta[n-1, :])   # latest theta
@@ -496,7 +496,7 @@ for r in xrange(rep):   # r replicates
         with open(dirname+'/comb.txt', 'w') as f_comb:
             pickle.dump(comb, f_comb)  
         if n > thresh:
-            thresh += 1
+            thresh += 100
             e = mcmcse.mcse(comb.T)[0]
             se = mcmcse.mcse(comb.T)[1]
             ssd = np.std(comb, 0)
