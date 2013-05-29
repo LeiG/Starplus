@@ -27,7 +27,7 @@ os.mkdir(dirname)   # make new directory
 
 
 # documentation
-f_doc = open(dirname+'/all-run with const_iter_5000', 'w')
+f_doc = open(dirname+'/all-run with const_iter_5000 & eps = 0.05', 'w')
 f_doc.close()
 
 
@@ -505,7 +505,7 @@ for r in xrange(rep):   # r replicates
             e = mcmcse.mcse(comb.T)[0]
             se = mcmcse.mcse(comb.T)[1]
             ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1./n < 0.5*ssd): # 90% and epsilon = 0.5
+            if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon = 0.05
                 break          
         
 
