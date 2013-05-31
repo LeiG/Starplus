@@ -28,7 +28,7 @@ if len(sys.argv) >= 2:
 os.mkdir(dirname)   # make new directory
 
 
-print 'all run with eps = 0.1'
+print 'all run with eps = 0.05'
 
 
 # set random seed
@@ -505,7 +505,7 @@ for r in xrange(rep):   # r replicates
             e = mcmcse.mcse(comb.T)[0]
             se = mcmcse.mcse(comb.T)[1]
             ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1./n < 0.1*ssd): # 90% and epsilon
+            if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon
                 break          
         
 
