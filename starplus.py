@@ -28,7 +28,7 @@ if len(sys.argv) >= 2:
 os.mkdir(dirname)   # make new directory
 
 
-print 'all run with eps = 0.02'
+print 'all run with eps = 1'
 
 
 # set random seed
@@ -462,7 +462,7 @@ for r in xrange(rep):   # r replicates
     comb = np.append(ga[0].flatten(), theta.flatten())  # storage of all parameters
     n = 0   # iterations
     thresh = 100   # lower bound for checking stopping rule
-    while n < 1:    # mcmc simulation
+    while 1:    # mcmc simulation
         n += 1  # counts
         #rho_cur = rho[n-1, :]   # latest rho
         theta_cur = np.copy(theta[n-1, :])   # latest theta
@@ -505,7 +505,7 @@ for r in xrange(rep):   # r replicates
             e = mcmcse.mcse(comb.T)[0]
             se = mcmcse.mcse(comb.T)[1]
             ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon = 0.05
+            if np.prod(se*1.645+1./n < 1.*ssd): # 90% and epsilon
                 break          
         
 
