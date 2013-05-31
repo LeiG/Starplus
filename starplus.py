@@ -20,15 +20,15 @@ from math import log, exp, sqrt, gamma, pi, fabs
 
 
 # make new directory to store results
-dirfmt = "%4d-%02d-%02d %02d:%02d"
-current_time = time.localtime()[0:5]
-dirname = dirfmt % current_time
+# dirfmt = "%4d-%02d-%02d %02d:%02d"
+# current_time = time.localtime()[0:5]
+# dirname = dirfmt % current_time
+if len(sys.argv) >= 2:
+    dirname = sys.argv[1]
 os.mkdir(dirname)   # make new directory
 
 
-# documentation
-f_doc = open(dirname+'/all-run with const_iter_5000 & eps = 0.05', 'w')
-f_doc.close()
+print 'all run with eps = 0.05'
 
 
 # set random seed
