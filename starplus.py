@@ -28,7 +28,7 @@ if len(sys.argv) >= 2:
 os.mkdir(dirname)   # make new directory
 
 
-print 'all run with eps = 0.1'
+print 'all run with eps = 0.02'
 
 
 # set random seed
