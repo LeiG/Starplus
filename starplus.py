@@ -369,7 +369,7 @@ accept = [] # record acceptance ratio
 def update_theta(v, j, theta_cur):   # metropolis hastings for update gamma
     cur = np.copy(theta_cur)
     temp = np.copy(theta_cur)
-    temp[j] = np.random.normal(cur[j], 1)  # generate proposal r.v.
+    temp[j] = np.random.normal(cur[j], 0.6)  # generate proposal r.v.
     r = ratio_theta(j, cur, temp)    # Hastings ratio
     u = np.random.uniform() # generate uniform r.v.
     cur[j] = temp[j]*(r > u)+cur[j]*(r < u)    # update theta[j]
