@@ -58,7 +58,7 @@ def main():
             gamma[0][v, 2:4] = 1
     
     # estimates
-    neigh = model.neighbor()    # neighbor structure
+    neigh = model.neighbor(N)    # neighbor structure
     
     rhosig = model.rhosig_mle(data, N)  # MLE for rho and sigma
     rho = rhosig[:, 0]
