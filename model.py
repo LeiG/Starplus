@@ -74,7 +74,7 @@ def cov(tp, rho):
     output = np.array(output)
     return output
     
-def cov_matrix(rho, N, tp)
+def cov_matrix(rho, N, tp):
     t = np.arange(0, tp/2.0, 0.5) # time sequence
     output = {}
     for v in xrange(N):
