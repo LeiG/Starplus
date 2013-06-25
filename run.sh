@@ -2,4 +2,4 @@
 
 cd $PBS_O_WORKDIR
 
-python starplus.py $PBS_JOBID
+python main.py $PBS_JOBID
