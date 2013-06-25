@@ -58,7 +58,7 @@ def main():
             gamma[0][v, 2:4] = 1
     
     # estimates
-    neigh = model.neighbor(N)    # neighbor structure
+    neigh = model.neighbor(N, coord)    # neighbor structure
     
     rhosig = model.rhosig_mle(data, N)  # MLE for rho and sigma
     rho = rhosig[:, 0]
@@ -76,7 +76,7 @@ def main():
     design_m = design(tp, press)    # design matrix
     
     # update
-    mcmc_update(theta, gamma)
+    mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N)
     
 
 if __name__ == '__main__':

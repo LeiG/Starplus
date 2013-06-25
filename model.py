@@ -70,7 +70,7 @@ def design(tp, press):
 
 #### covariance matrix capital gamma ####
 def cov(tp, rho):    
-    output = [[rho**fabs(i - j) for i in range(2*tp)] for j in range(2*tp)]   # AR(1) structure
+    output = [[rho**np.fabs(i - j) for i in range(2*tp)] for j in range(2*tp)]   # AR(1) structure
     output = np.array(output)
     return output
     
@@ -85,7 +85,7 @@ def cov_matrix(rho, N, tp):
 #### Ising prior ####
 # weight of interaction between voxels
 def w(coord, v, k):    
-    dis = sqrt((coord[v][0]-coord[k][0])**2+(coord[v][1]-coord[k][1])**2+(coord[v][2]-coord[k][2])**2)  # distance between voxels
+    dis = np.sqrt((coord[v][0]-coord[k][0])**2+(coord[v][1]-coord[k][1])**2+(coord[v][2]-coord[k][2])**2)  # distance between voxels
     if dis == 0.:
         return 0.
     else:
@@ -93,19 +93,19 @@ def w(coord, v, k):
 w = np.vectorize(w) # vectorize
 
 # neighbors of voxel v    
-def neig(v):   
+def neig(v, coord, N):   
     output = [i for i in range(N) if w(coord, v, i) == 1.]
     return output
     
 # neighborhood structure
-def neighbor(N):
+def neighbor(N, coord):
     output = {}  # dictionary for neighborhood structure
     for v in range(N):
-        output.update({v: neig(v)})
+        output.update({v: neig(v, coord, N)})
     return output
     
 # log of unnormalized Ising prior
-def log_Ising(j, theta, gamma, neigh):
+def log_Ising(j, theta, gamma, neigh, coord, N):
     s = np.sum([w(coord, v, k) for v in xrange(N) for k in neigh[v] if gamma[k, j] == gamma[v, j]])
     output = theta[j]*s
     return output
@@ -116,12 +116,13 @@ def log_Ising(j, theta, gamma, neigh):
 def loglike_ar(x, y):
     rho = x[0]
     sig = x[1]
+    T = len(y)  # number of time point
     if rho <= -1 or rho >= 1 or sig <= 0:
         return -inf
     else:
         T = len(y)  # number of time point
         part = np.sum([(y[i+1]-rho*y[i])**2 for i in xrange(T-1)])
-        return -T*log(2*pi)/2-(T-1)*log(sig*(1-rho**2))/2-part/(2*sig*(1-rho**2))-log(sig)/2-y[0]**2/(2*sig)   # log-likelihood
+        return -T*log(2*np.pi)/2-(T-1)*np.log(sig*(1-rho**2))/2-part/(2*sig*(1-rho**2))-np.log(sig)/2-y[0]**2/(2*sig)   # log-likelihood
 
 # derivative of log likelihood for AR(1) model
 def loglike_ar_der(x, y):   
