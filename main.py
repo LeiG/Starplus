@@ -45,7 +45,7 @@ def main():
     data = raw[tr, 0]   # abstracted data
     N = data.shape[1]  # number of voxels
     tp = data.shape[0]   # number of time points
-    a = log(0.1/(1-0.1))    # external field parameter
+    a = np.log(0.1/(1-0.1))    # external field parameter
     G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']    # anatomical interested region
     q = 0.8722  # threshold for activation in voxels
     
