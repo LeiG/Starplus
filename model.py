@@ -98,7 +98,7 @@ def neig(v):
     return output
     
 # neighborhood structure
-def neighbor():
+def neighbor(N):
     output = {}  # dictionary for neighborhood structure
     for v in range(N):
         output.update({v: neig(v)})
