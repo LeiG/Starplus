@@ -90,7 +90,6 @@ def w(coord, v, k):
         return 0.
     else:
         return 1/dis    # weight set to the reciprocal of distance
-w = np.vectorize(w) # vectorize
 
 # neighbors of voxel v    
 def neig(v, coord, N):   
