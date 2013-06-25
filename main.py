@@ -12,7 +12,10 @@ call modules
 # import modules
 import sys
 import os
+import pickle
+import numpy as np
 from scipy.io import loadmat
+from numpy.linalg import inv
 
 import model
 import mcmc
