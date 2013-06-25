@@ -77,9 +77,11 @@ def cov(tp, rho):
 def cov_matrix(rho, N, tp):
     t = np.arange(0, tp/2.0, 0.5) # time sequence
     output = {}
+    output_inv = {}
     for v in xrange(N):
         output.update({v: cov(tp, rho[v])})
-    return output
+        output_inv.update({v: inv(cov(tp, rho[v]))})
+    return [output, output_inv]
     
     
 #### Ising prior ####
@@ -169,8 +171,8 @@ def rhosig_mle(data, N):
 def beta_hat(v, cov_inv, gamma, data, tp, design):
     y = data[:, v].reshape(tp, 1)
     d_nonzero = design[:,np.nonzero(gamma[v,:])[0]] # design matrix nonzero part
-    output_p1 = (d_nonzero.T.dot(cov_inv)).dot(d_nonzero)
-    output_p2 = (d_nonzero.T.dot(cov_inv)).dot(y)
+    output_p1 = (d_nonzero.T.dot(cov_inv[v])).dot(d_nonzero)
+    output_p2 = (d_nonzero.T.dot(cov_inv[v])).dot(y)
     output = inv(output_p1).dot(output_p2)
     return output
 
@@ -178,7 +180,7 @@ def S(v, cov_inv, gamma, data, tp, design):
     y = data[:, v].reshape(tp, 1)
     d_nonzero = design[:,np.nonzero(gamma[v,:])[0]] # design matrix nonzero part
     beta = beta_hat(v, cov_inv, gamma, data, tp, design)    # beta hat
-    output = ((y-d_nonzero.dot(beta)).T.dot(cov_inv)).dot(y-d_nonzero.dot(beta))
+    output = ((y-d_nonzero.dot(beta)).T.dot(cov_inv[v])).dot(y-d_nonzero.dot(beta))
     return output
     
     

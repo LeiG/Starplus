@@ -68,8 +68,8 @@ def main():
     with open(dirname+'/sig.txt', 'w') as f_sig:
         pickle.dump(sig, f_sig)
         
-    cov_m = model.cov_matrix(rho, N, tp)    # covariance matrix
-    cov_m_inv = inv(cov_m)  # inverse of covariance matrix
+    cov_m = model.cov_matrix(rho, N, tp)[0]    # covariance matrix
+    cov_m_inv = model.cov_matrix(rho, N, tp)[1] # inverse of covariance matrix
     with open(dirname+'/cov.txt', 'w') as f_cov:
         pickle.dump(cov_m, f_cov)
             
