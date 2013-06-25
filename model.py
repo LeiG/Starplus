@@ -121,7 +121,7 @@ def loglike_ar(x, y):
     else:
         T = len(y)  # number of time point
         part = np.sum([(y[i+1]-rho*y[i])**2 for i in xrange(T-1)])
-        return -T*log(2*np.pi)/2-(T-1)*np.log(sig*(1-rho**2))/2-part/(2*sig*(1-rho**2))-np.log(sig)/2-y[0]**2/(2*sig)   # log-likelihood
+        return -T*np.log(2*np.pi)/2-(T-1)*np.log(sig*(1-rho**2))/2-part/(2*sig*(1-rho**2))-np.log(sig)/2-y[0]**2/(2*sig)   # log-likelihood
 
 # derivative of log likelihood for AR(1) model
 def loglike_ar_der(x, y):   
