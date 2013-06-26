@@ -61,7 +61,7 @@ def conv(hrf, sti):  # convolved impulse
 # time dependent design matrix
 def design(tp, press):  
     t = np.arange(0, tp/2.0, 0.5) # time sequence
-    output = np.ones((2*tp, 4))
+    output = np.ones((tp, 4))
     output[:, 1] = conv(hrf(t), sti_0(t))
     output[:, 2] = conv(hrf(t), sti_1(t))
     output[:, 3] = conv(hrf(t), sti_2(t, press))
