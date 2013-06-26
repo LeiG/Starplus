@@ -70,7 +70,7 @@ def design(tp, press):
 
 #### covariance matrix capital gamma ####
 def cov(tp, rho):    
-    output = [[rho**np.fabs(i - j) for i in range(2*tp)] for j in range(2*tp)]   # AR(1) structure
+    output = [[rho**np.fabs(i - j) for i in range(tp)] for j in range(tp)]   # AR(1) structure
     output = np.array(output)
     return output
     
