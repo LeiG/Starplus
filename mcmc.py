@@ -32,7 +32,7 @@ def gamma_prop(v, j, gamma, theta, coord, neigh):
 #### hastings ratio for theta & gamma ####
 # ratio theta
 def ratio_theta(j, theta, theta_star, gamma, neigh, coord, N):
-    log_output = log_const_theta(j, theta, theta_star, ga_cur)+model.log_Ising(j, theta_star-theta, ga_cur, neigh, coord, N)+np.log(norm.pdf(theta[j], theta[j], 0.6)/norm.pdf(theta_star[j], theta[j], 0.6))
+    log_output = model.log_Ising(j, theta_star-theta, ga_cur, neigh, coord, N)+np.log(norm.pdf(theta[j], theta[j], 0.6)/norm.pdf(theta_star[j], theta[j], 0.6))
     if log_output > 0:
         output = 1
     else:
