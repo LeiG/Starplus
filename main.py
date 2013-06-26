@@ -76,7 +76,7 @@ def main():
     design_m = model.design(tp, press)    # design matrix
     
     # update
-    mcmc.mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N)
+    mcmc.mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N, dirname)
     
 
 if __name__ == '__main__':

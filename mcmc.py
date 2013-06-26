@@ -48,7 +48,7 @@ def ratio_gamma(v, j, gamma, gamma_star, cov_m_inv, data, tp, design_m): # Hasti
 
 #### stepwise update for theta & gamma ####
 # update theta
-def update_theta(j, theta_cur, gamma, neigh, coord, N):
+def update_theta(j, theta_cur, gamma, neigh, coord, N, dirname):
     theta_max = 2   # theta_max
     cur = np.copy(theta_cur)
     temp = np.copy(theta_cur)
@@ -82,7 +82,7 @@ def update_gamma(v, j, gamma_cur, theta_cur, coord, neigh, cov_m_inv, data, tp, 
     
 
 #### mcmc update for theta & gamma ####
-def mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N):
+def mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N, dirname):
     thresh = 1000   # threshold for checking mcmcse
     n = 0   # start simulation
     comb = np.append(gamma[0].flatten(), theta.flatten())  # storage of all parameters
@@ -103,7 +103,7 @@ def mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N)
         
         # update theta
         for j in range(p):
-            theta_cur = update_theta(j, theta_cur, gamma_cur, neigh, coord, N)   # update theta
+            theta_cur = update_theta(j, theta_cur, gamma_cur, neigh, coord, N, dirname)   # update theta
         theta = np.vstack([theta, theta_cur])
         # write theta in file
         with open(dirname+'/theta.txt', 'w') as f_theta:
