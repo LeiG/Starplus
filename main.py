@@ -73,10 +73,10 @@ def main():
     with open(dirname+'/cov.txt', 'w') as f_cov:
         pickle.dump(cov_m, f_cov)
             
-    design_m = design(tp, press)    # design matrix
+    design_m = model.design(tp, press)    # design matrix
     
     # update
-    mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N)
+    mcmc.mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N)
     
 
 if __name__ == '__main__':
