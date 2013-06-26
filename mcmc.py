@@ -48,6 +48,7 @@ def ratio_gamma(v, j, gamma, gamma_star, cov_m_inv, data, tp, design_m): # Hasti
 
 #### stepwise update for theta & gamma ####
 # update theta
+accept = [] # record acceptance ratio    
 def update_theta(j, theta_cur, gamma, neigh, coord, N, dirname):
     theta_max = 2   # theta_max
     cur = np.copy(theta_cur)
