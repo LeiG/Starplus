@@ -81,7 +81,7 @@ def cov_matrix(rho, N, tp):
     for v in xrange(N):
         output.update({v: cov(tp, rho[v])})
         output_inv.update({v: inv(cov(tp, rho[v]))})
-    return [output, output_inv]
+    return output, output_inv
     
     
 #### Ising prior ####
