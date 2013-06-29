@@ -142,7 +142,7 @@ cpdef double w(np.ndarray[double, ndim = 2] coord, int v, int k):
         return 1/dis    # weight set to the reciprocal of distance
 
 # neighbors of voxel v    
-cpdef np.ndarray[int, ndim = 1] neig(int v, np.ndarray[double, ndim = 2] coord, int N):  
+cpdef np.ndarray[long, ndim = 1] neig(int v, np.ndarray[double, ndim = 2] coord, int N):  
 
     cdef int i
     cdef np.ndarray[long, ndim = 1] output
