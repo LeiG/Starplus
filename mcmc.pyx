@@ -15,11 +15,7 @@ mcmc_update(theta, gamma): mcmc updates with stopping rule
 
 # import module
 from __future__ import division
-import pyximport
 import numpy as np
-pyximport.install(setup_args={'include_dirs':[np.get_include()]})
-import model
-
 cimport numpy as np
 
 import pickle

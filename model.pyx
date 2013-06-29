@@ -201,14 +201,21 @@ def Newton(f, f_der, f_hess, x_0, data, eps = 10**(-6)):    # Newton's method
     return x_0
     
 # MLE for rho and sigma 
-def rhosig_mle(data, N):
-    output = np.array([Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v]) for v in xrange(N)])
+cpdef np.ndarray[double, ndim = 1] rhosig_mle(np.ndarray[int, ndim = 2] data, int N):
+    
+    cdef int v
+    cdef np.ndarray[double, ndim = 1] output
+
+    output = np.array([Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, [0,1], data[:, v]) for v from 0 <= v < N])
     return output
     
     
 #### S function ####
 # beta hat
-def beta_hat(v, cov_inv, gamma, data, tp, design):
+cpdef np.ndarray[double, ndim = 2] beta_hat(int v, dict cov_inv, np.ndarray[int, ndim = 2] gamma, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design):
+    
+    cdef np.ndarray[double, ndim = 2] y, d_nonzero, output_p1, output_p2, output
+    
     y = data[:, v].reshape(tp, 1)
     d_nonzero = design[:,np.nonzero(gamma[v,:])[0]] # design matrix nonzero part
     output_p1 = (d_nonzero.T.dot(cov_inv[v])).dot(d_nonzero)
@@ -216,7 +223,10 @@ def beta_hat(v, cov_inv, gamma, data, tp, design):
     output = inv(output_p1).dot(output_p2)
     return output
 
-def S(v, cov_inv, gamma, data, tp, design):
+cpdef np.ndarray[double, ndim = 2] S(int v, dict cov_inv, np.ndarray[int, ndim = 2] gamma, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design):
+    
+    cdef np.ndarray[double, ndim = 2] y, d_nonzero, beta, output
+    
     y = data[:, v].reshape(tp, 1)
     d_nonzero = design[:,np.nonzero(gamma[v,:])[0]] # design matrix nonzero part
     beta = beta_hat(v, cov_inv, gamma, data, tp, design)    # beta hat
