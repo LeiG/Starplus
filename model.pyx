@@ -21,46 +21,71 @@ from scipy.special import gamma as Gamma
 
 #### design matrix ####
 # initial stimulus
-def sti_0(double t):   
-    if t == 0:
-        return 1.0
-    else:
-        return 0.0        
-sti_0 = np.vectorize(sti_0) # vectorize
+cpdef np.ndarray[double, ndim = 1] sti_0(np.ndarray[double, ndim = 1] t):
+    
+    cdef int l = t.shape[0]
+    cdef int tt
+    cdef np.ndarray output = np.zeros(l, dtype = np.float)
+    
+    for tt from 0 <= tt < l:
+        if t[tt] == 0.0:
+            output[tt] = 1.0
+        else:
+            output[tt] = 0.0
+    return output        
 
 # first stimulus
-def sti_1(double t):
-    if t <= 4 and t >= 0:
-        return 1.0
-    if t > 4 and t <= 27:
-        return 0.0        
-sti_1 = np.vectorize(sti_1)   # vectorize
+cpdef np.ndarray[double, ndim = 1] sti_1(np.ndarray[double, ndim = 1] t):
+
+    cdef int l = t.shape[0]
+    cdef int tt
+    cdef np.ndarray output = np.zeros(l, dtype = np.float)
+    
+    for tt from 0 <= tt < l:
+        if t[tt] <= 4.0 and t[tt] >= 0.0:
+            output[tt] = 1.0
+        else:
+            output[tt] = 0.0
+    return output
         
 # second stimulus
-def sti_2(double t, double press):
-    t_press = min(12, press)
-    if t > 8 and t <= t_press:
-        return 1.0
-    if t <= 8 and t >= 0:
-        return 0.0
-    if t > t_press and t <= 27:
-        return 0.0        
-sti_2 = np.vectorize(sti_2)   # vectorize
+cpdef np.ndarray[double, ndim = 1] sti_2(np.ndarray[double, ndim = 1] t, double press):
+
+    cdef double t_press = min(12.0, press)
+    cdef int l = t.shape[0]
+    cdef int tt
+    cdef np.ndarray output = np.zeros(l, dtype = np.float)
+    
+    for tt from 0 <= tt < l:
+        if t[tt] > 8.0 and t[tt] <= t_press:
+            output[tt] = 1.0
+        else:
+            output[tt] = 0.0
+    return output
 
 # HRF function scaled such that sum(hrf(t))=1 for t = np.arange(0, 27, 0.5)
-def hrf(double t):
-    if t < 0:
-        return 0.0
-    else:
-        #return 1.0/111.8*(t**8.60)*np.exp(-t/0.547)
-        return 5.6999155101700625*((t**5)*np.exp(-t)/Gamma(6.0)-1/6.0*(t**15)*np.exp(-t)/Gamma(16.0))/9.5187445708326752                
-hrf = np.vectorize(hrf) # vectorize
+cpdef np.ndarray[double, ndim = 1] hrf(np.ndarray[double, ndim = 1] t):
 
-def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):  # convolved impulse
-    output = range(np.size(sti))
+    cdef int l = t.shape[0]
+    cdef int tt
+    cdef np.ndarray output = np.zeros(l, dtype = np.float)
+    
+    for tt from 0 <= tt < l:
+        if t[tt] < 0.0:
+            output[tt] = 0.0
+        else:
+            #return 1.0/111.8*(t**8.60)*np.exp(-t/0.547)
+            output[tt] = 5.6999155101700625*((t**5)*np.exp(-t)/Gamma(6.0)-1/6.0*(t**15)*np.exp(-t)/Gamma(16.0))/9.5187445708326752                
+    return output
+
+cpdef np.ndarray[double, ndim = 1] conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):  # convolved impulse
+    
+    cdef np.ndarray[double, ndim = 1] output = range(np.size(sti))
+    cdef int value, i
+    
     for value in output:
         output[value] = 0
-        for i in xrange(value+1):
+        for i from 0 <= i < value+1:
             output[value] += hrf[i]*sti[value - i]
     return output
 
