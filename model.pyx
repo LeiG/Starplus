@@ -21,7 +21,7 @@ from scipy.special import gamma as Gamma
 
 #### design matrix ####
 # initial stimulus
-def sti_0(t):   
+def sti_0(double t):   
     if t == 0:
         return 1.0
     else:
@@ -29,7 +29,7 @@ def sti_0(t):
 sti_0 = np.vectorize(sti_0) # vectorize
 
 # first stimulus
-def sti_1(t):
+def sti_1(double t):
     if t <= 4 and t >= 0:
         return 1.0
     if t > 4 and t <= 27:
@@ -37,7 +37,7 @@ def sti_1(t):
 sti_1 = np.vectorize(sti_1)   # vectorize
         
 # second stimulus
-def sti_2(t, press):
+def sti_2(double t, double press):
     t_press = min(12, press)
     if t > 8 and t <= t_press:
         return 1.0
@@ -48,7 +48,7 @@ def sti_2(t, press):
 sti_2 = np.vectorize(sti_2)   # vectorize
 
 # HRF function scaled such that sum(hrf(t))=1 for t = np.arange(0, 27, 0.5)
-def hrf(t):
+def hrf(double t):
     if t < 0:
         return 0.0
     else:
@@ -56,7 +56,7 @@ def hrf(t):
         return 5.6999155101700625*((t**5)*np.exp(-t)/Gamma(6.0)-1/6.0*(t**15)*np.exp(-t)/Gamma(16.0))/9.5187445708326752                
 hrf = np.vectorize(hrf) # vectorize
 
-def conv(hrf, sti):  # convolved impulse
+def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):  # convolved impulse
     output = range(np.size(sti))
     for value in output:
         output[value] = 0
