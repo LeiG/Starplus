@@ -10,15 +10,18 @@ call modules
 '''
 
 # import modules
+import pyximport
+import numpy as np
+pyximport.install(setup_args={'include_dirs':[np.get_include()]})
+import model
+import mcmc
+
+
 import sys
 import os
 import pickle
-import numpy as np
 from scipy.io import loadmat
 from numpy.linalg import inv
-
-import model
-import mcmc
 
 
 # main()
