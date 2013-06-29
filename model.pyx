@@ -145,7 +145,7 @@ cpdef double w(np.ndarray[double, ndim = 2] coord, int v, int k):
 cpdef np.ndarray[int, ndim = 1] neig(int v, np.ndarray[double, ndim = 2] coord, int N):  
 
     cdef int i
-    cdef np.ndarray[int, ndim = 1] output
+    cdef np.ndarray[long, ndim = 1] output
  
     output = np.asarray([i for i from 0 <= i < N if w(coord, v, i) == 1.])
     return output
