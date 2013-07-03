@@ -237,12 +237,11 @@ def loglike_ar_hess(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1]
     hess[1, 1] = (T-1.0)/(2.0*sig**2.0) - part_1/((1.0-rho**2.0)*(sig**3.0)) + 1.0/(2.0*sig**2.0) - y[0]**2.0/(sig**3.0)
     return hess
     
-cpdef np.ndarray[double, ndim = 1] Newton(f, f_der, f_hess, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data, double eps = 10**(-6)):    # Newton's method    
+cpdef np.ndarray[double, ndim = 1] Newton(f, f_der, f_hess, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data, double eps = 10**(-4)):    # Newton's method    
     
     cdef double f_0 = f(x_0, data)  # benchmark
     cdef np.ndarray[double, ndim = 1] y_0 = x_0
     
-#     import pdb; pdb.set_trace() # debug flag
     y_0 -= np.dot(inv(f_hess(y_0, data)), f_der(y_0, data))    # update
     while abs(f(y_0, data) - f_0) > eps:
         f_0 = f(y_0, data)  # benchmark
@@ -253,10 +252,12 @@ cpdef np.ndarray[double, ndim = 1] Newton(f, f_der, f_hess, np.ndarray[double, n
 cpdef np.ndarray[double, ndim = 2] rhosig_mle(np.ndarray[double, ndim = 2] data, int N):
     
     cdef int v
-    cdef np.ndarray[double, ndim = 2] output
+    cdef list output = []
     
-    output = np.array([Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, np.array([0.0, 1.0]), data[:, v]) for v from 0 <= v < N])
-    return output
+    for v from 0 <= v < N:
+        output.append(Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, np.array([0.0, 1.0]), data[:, v]))
+#     output = np.array([Newton(loglike_ar, loglike_ar_der, loglike_ar_hess, np.array([0.0, 1.0]), data[:, v]) for v from 0 <= v < N])
+    return np.asarray(output)
     
     
 #### S function ####

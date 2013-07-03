@@ -130,7 +130,7 @@ cpdef np.ndarray[double, ndim = 2] update_gamma(int v, int j, np.ndarray[double,
     
 
 #### mcmc update for theta & gamma ####
-def mcmc_update(np.ndarray[double, ndim = 2] theta, dict gamma, np.ndarray[double, ndim = 2] coord, dict neigh, dict cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, char dirname):
+cpdef mcmc_update(np.ndarray[double, ndim = 2] theta, dict gamma, np.ndarray[double, ndim = 2] coord, dict neigh, dict cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, char dirname):
     
     cdef int thresh = 1000   # threshold for checking mcmcse
     cdef int n = 0   # start simulation

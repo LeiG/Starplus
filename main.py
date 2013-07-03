@@ -13,9 +13,7 @@ call modules
 import pyximport
 import numpy as np
 pyximport.install(setup_args={'include_dirs':[np.get_include()]})
-import model
-import mcmc
-
+import posterior
 
 import sys
 import os
@@ -55,15 +53,17 @@ def main():
     # initial values
     theta = np.ones((1, p)) # strength of interaction
     gamma = {0 : np.zeros((N, p))}    # indicator gamma
-    gamma[0][:, 0:2] = 1  # first two columns are one's
-    for v in range(N): # for voxels in anatomical region assign gamma = 1
+    gamma[0][:, 0:2] = 1  # first two columns are fixed one's
+    for v in range(N): 
         if roi[v] in G:
             gamma[0][v, 2:4] = 1
     
     # estimates
-    neigh = model.neighbor(N, coord)    # neighbor structure
+    neighbor = posterior.neighbor(N, coord)
+    neigh = neighbor[0] # neighborhood structure
+    weight = neighbor[1]    # weights
     
-    rhosig = model.rhosig_mle(data, N)  # MLE for rho and sigma
+    rhosig = posterior.rhosig_mle(data, N)  # MLE for rho and sigma
     rho = rhosig[:, 0]
     sig = rhosig[:, 1]
     with open(dirname+'/rho.txt', 'w') as f_rho:
@@ -71,14 +71,14 @@ def main():
     with open(dirname+'/sig.txt', 'w') as f_sig:
         pickle.dump(sig, f_sig)
         
-    [cov_m, cov_m_inv] = model.cov_matrix(rho, N, tp)   # covariance matrix
+    [cov_m, cov_m_inv] = posterior.cov_matrix(rho, N, tp)   # covariance matrix
     with open(dirname+'/cov.txt', 'w') as f_cov:
         pickle.dump(cov_m, f_cov)
             
-    design_m = model.design(tp, press)    # design matrix
+    design_m = posterior.design(tp, press)    # design matrix
     
     # update
-    mcmc.mcmc_update(theta, gamma, coord, neigh, cov_m_inv, data, tp, design_m, p, N, dirname)
+    posterior.mcmc_update(theta, gamma, neigh, cov_m_inv, data, tp, design_m, p, N, dirname)
     
 
 if __name__ == '__main__':
