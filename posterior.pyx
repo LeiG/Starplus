@@ -94,7 +94,7 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
     return loglikelihood, [der_rho, der_sig], hess
  
 # Newton function    
-def Newton(f, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 2] data):
+def Newton(f, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data):
     
     cdef double eps = 10**(-4)
     cdef list f_0 = f(x_0, data)
