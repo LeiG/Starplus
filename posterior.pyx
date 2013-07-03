@@ -91,7 +91,7 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
     hess[1, 0] = hess[0, 1]
     hess[1, 1] = (T-1.0)/(2.0*sig**2.0) - part_1/((1.0-rho**2.0)*(sig**3.0)) + 1.0/(2.0*sig**2.0) - y[0]**2.0/(sig**3.0)
     
-    return loglikelihood, [der_rho, der_sig], hess
+    return [loglikelihood, [der_rho, der_sig], hess]
  
 # Newton function    
 def Newton(f, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data):

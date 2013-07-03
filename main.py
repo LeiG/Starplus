@@ -62,6 +62,10 @@ def main():
     neighbor = posterior.neighbor(N, coord)
     neigh = neighbor[0] # neighborhood structure
     weight = neighbor[1]    # weights
+    with open(dirname+'/neigh.txt', 'w') as f_neigh:
+        pickle.dump(neigh, f_neigh)
+    with open(dirname+'/weight.txt', 'w') as f_weight:
+        pickle.dump(weight, f_weight)
     
     rhosig = posterior.rhosig_mle(data, N)  # MLE for rho and sigma
     rho = rhosig[:, 0]
