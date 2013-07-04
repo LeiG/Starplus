@@ -69,7 +69,7 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
     cdef double part_1 = 0.0
     cdef double part_2 = 0.0
     cdef double part_3 = 0.0
-    cdef np.ndarray[double, ndim = 2] hess = np.zeros((2, 2))
+    cdef np.ndarray[double, ndim = 2] hess = np.zeros((2, 2), dtype = np.float)
     cdef int i
     cdef double loglikelihood, der_rho, der_sig
     
@@ -96,7 +96,7 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
 # Newton function    
 def Newton(f, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data):
     
-    cdef double eps = 10**(-4)
+    cdef double eps = 10**(-6)
     cdef list f_0 = f(x_0, data)
     cdef np.ndarray[double, ndim = 1] y_new = x_0 - np.dot(inv(f_0[2]), f_0[1])
     cdef list f_new = f(y_new, data)
@@ -112,10 +112,11 @@ def Newton(f, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] dat
 def rhosig_mle(np.ndarray[double, ndim = 2] data, int N):
 
     cdef int v
-    cdef np.ndarray output = np.zeros((N, 2))
+    cdef np.ndarray output = np.zeros((N, 2), dtype = np.float)
+    cdef np.ndarray x_0 = np.array([0.0, 1.0])
     
-    for v in range(N):
-        output[v, :] = Newton(loglike_ar1, np.array([0.0, 1.0]), data[:, v])
+    for v from 0 <= v < N:
+        output[v, :] = Newton(loglike_ar1, x_0, data[:, v])
     
     return output
     
