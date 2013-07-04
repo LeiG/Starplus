@@ -112,7 +112,10 @@ def Newton(f, np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] dat
 def rhosig_mle(np.ndarray[double, ndim = 2] data, int N):
 
     cdef int v
-    cdef np.ndarray[double, ndim = 2] output = np.array([Newton(loglike_ar1, np.array([0.0, 1.0]), data[:, v]) for v in range(N)])
+    cdef np.ndarray output = np.zeros((N, 2))
+    
+    for v in range(N):
+        output[v, :] = Newton(loglike_ar1, np.array([0.0, 1.0]), data[:, v])
     
     return output
     
