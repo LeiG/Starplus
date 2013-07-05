@@ -12,6 +12,7 @@ Posterior analysis for hierarchical model of fMRI data
 import numpy as np
 cimport numpy as np
 
+import copy
 from numpy.linalg import inv
 from scipy.special import gamma as Gamma
 import pickle
@@ -96,16 +97,15 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
 # Newton function    
 def Newton(np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data):
     
-    cdef double eps = 10**(-6)
+    cdef double eps = 0.000001
     cdef list f_0 = loglike_ar1(x_0, data)
     cdef np.ndarray[double, ndim = 1] y_new = x_0 - np.dot(inv(f_0[2]), f_0[1])
     cdef list f_new = loglike_ar1(y_new, data)
-    
     while np.fabs(f_new[0] - f_0[0]) > eps:
-        f_0 = f_new
+        f_0 = copy.deepcopy(f_new)
         y_new -= np.dot(inv(f_0[2]), f_0[1])
         f_new = loglike_ar1(y_new, data)
-        
+
     return y_new
     
 # MLE for rho and sigma
@@ -147,7 +147,7 @@ def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):
     cdef int value, i
     
     for value in output:
-        output[value] = 0
+        output[value] = 0.0
         for i in range(value+1):
             output[value] += hrf[i]*sti[value - i]
     return output
