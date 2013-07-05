@@ -68,7 +68,7 @@ def main():
         pickle.dump(weight, f_weight)
     
 #     rhosig = posterior.rhosig_mle(data, N)  # MLE for rho and sigma
-    rhosig = np.array([Newton(loglike_ar1, np.array([0.0,1.0]), data[:, v]) for v in xrange(N)])
+    rhosig = np.array([posterior.Newton(np.array([0.0,1.0]), data[:, v]) for v in xrange(N)])
     rho = rhosig[:, 0]
     sig = rhosig[:, 1]
     with open(dirname+'/rho.txt', 'w') as f_rho:
