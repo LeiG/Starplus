@@ -317,5 +317,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
                 pickle.dump(comb, f_comb)
             [e, se] = mcse(comb.T)
             ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon
-                break 
+            if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon = 0.05
+                break
+                
+    return gamma, theta 

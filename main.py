@@ -19,7 +19,6 @@ import sys
 import os
 import pickle
 from scipy.io import loadmat
-import pdb
 
 
 # main()
@@ -75,8 +74,7 @@ def main():
     design_m = posterior.design(tp, press)    # design matrix
     
     # update
-    pdb.set_trace()
-    posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
+    [gamma, theta] = posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
     
 
 if __name__ == '__main__':
