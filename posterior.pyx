@@ -18,7 +18,6 @@ from scipy.special import gamma as Gamma
 import pickle
 from scipy.stats import norm
 
-
 #### mcmcse.mcse function ####
 def mcse(np.ndarray[double, ndim = 2] y):
     
@@ -200,7 +199,7 @@ def log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, int 
     for v in range(N):
         for k in neigh[v]:
             if gamma[k] == gamma[v]:
-                s += theta # subject to neighborhood structure/ weight changes
+                output += theta # subject to neighborhood structure/ weight changes
     
     return output
     
@@ -218,7 +217,7 @@ def S(int v, np.ndarray[double, ndim = 2] cov_inv, np.ndarray[double, ndim = 2] 
     return output
 
 # update gamma
-def update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[int, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
+def update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
@@ -270,7 +269,7 @@ def update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[doubl
 #### MCMC updates ####
 def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
     
-    cdef unsigned int thresh = 1000   # threshold for checking mcmcse
+    cdef unsigned int thresh   # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
@@ -284,6 +283,8 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     
     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
     comb = np.vstack((comb_cur, comb_cur))
+    
+    thresh = 1000
     
     while 1:
         n += 1  # counts
@@ -317,4 +318,4 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
             [e, se] = mcse(comb.T)
             ssd = np.std(comb, 0)
             if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon
-                break    
+                break 
