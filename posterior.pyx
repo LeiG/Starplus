@@ -22,11 +22,11 @@ from scipy.stats import norm
 #### mcmcse.mcse function ####
 def mcse(np.ndarray[double, ndim = 2] y):
     
-    cdef int length = y.shape[1]
+    cdef unsigned int length = y.shape[1]
     cdef int dim = y.shape[0]
-    cdef int b = np.int(np.sqrt(length))
-    cdef int a = length//b
-    cdef int d, k
+    cdef unsigned int b = np.int(np.sqrt(length))
+    cdef unsigned int a = length//b
+    cdef unsigned int d, k
     cdef np.ndarray batch = np.zeros([dim, a], dtype = np.float)
     cdef np.ndarray mu_hat = np.zeros([dim, 1], dtype = np.float)
     cdef np.ndarray se_hat = np.zeros([dim, 1], dtype = np.float)    
@@ -51,11 +51,14 @@ def neighbor(int N, np.ndarray[double, ndim = 2] coord):
     for v from 0 <= v < N:
         for k from 0 <= k < v:
             dis = np.sqrt((coord[v][0]-coord[k][0])**2+(coord[v][1]-coord[k][1])**2+(coord[v][2]-coord[k][2])**2)
-            if dis == 0:
+            if dis == 0.0:
                 w[v, k] = w[k, v] = 0.0
             else:
                 w[v, k] = w[k, v] = 1.0/dis
+    
+    for v from 0 <= v < N:
         output.update({v: np.where(w[v] == 1.0)[0]})
+        
     return output, w
     
 
@@ -143,7 +146,7 @@ def cov_matrix(np.ndarray[double, ndim = 1] rho, int N, int tp):
 # convolve function
 def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):
     
-    cdef np.ndarray[double, ndim = 1] output = range(np.size(sti))
+    cdef np.ndarray[double, ndim = 1] output = np.arange(np.float(np.size(sti)))
     cdef int value, i
     
     for value in output:
@@ -265,15 +268,22 @@ def update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[doubl
     
     
 #### MCMC updates ####
-def mcmc_update(np.ndarray[double, ndim = 2] theta, dict gamma, dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, char dirname):
+def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
     
-    cdef int thresh = 1000   # threshold for checking mcmcse
-    cdef int n = 0   # start simulation
+    cdef unsigned int thresh = 1000   # threshold for checking mcmcse
+    cdef unsigned int n = 0   # start simulation
     cdef int v, j
-    cdef np.ndarray[double, ndim = 2] gamma_cur, comb_cur, comb
-    cdef np.ndarray[double, ndim = 1] theta_cur, e, se, ssd
+    cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
+    cdef np.ndarray[double, ndim = 1] theta_cur, comb_cur, e, se, ssd
+    cdef dict gamma
     
-    comb = np.append(gamma[0].flatten(), theta.flatten())  # storage of all parameters
+    # initial values
+    theta = np.ones((1, p)) # strength of interaction
+    gamma = {0 : np.zeros((N, p))}    # indicator gamma
+    gamma[0][:, 0:2] = 1  # first two columns are fixed one's
+    
+    comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
+    comb = np.vstack((comb_cur, comb_cur))
     
     while 1:
         n += 1  # counts

@@ -19,6 +19,7 @@ import sys
 import os
 import pickle
 from scipy.io import loadmat
+import pdb
 
 
 # main()
@@ -40,22 +41,15 @@ def main():
     
     # set parameters
     tr = 3-1  # inference for the third trail    P -> S
-    press = (action[tr][0][0] > 0)*(action[tr][0][0]/1000.0+8)+(action[tr][0][0] == 0)*(4+8)  # second stimulus on the screen
+    press = (action[tr][0][0] > 0)*(action[tr][0][0]/1000.0+8.0)+(action[tr][0][0] == 0)*(4.0+8.0)  # second stimulus on the screen
     p = 4   # number of parameters
     data = raw[tr, 0]   # abstracted data
     N = data.shape[1]  # number of voxels
     tp = data.shape[0]   # number of time points
-    a = np.log(0.1/(1-0.1))    # external field parameter
+    a = np.log(0.1/(1.0-0.1))    # external field parameter
     G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']    # anatomical interested region
     q = 0.8722  # threshold for activation in voxels
     
-    # initial values
-    theta = np.ones((1, p)) # strength of interaction
-    gamma = {0 : np.zeros((N, p))}    # indicator gamma
-    gamma[0][:, 0:2] = 1  # first two columns are fixed one's
-    for v in range(N): 
-        if roi[v] in G:
-            gamma[0][v, 2:4] = 1
     
     # estimates
     neighbor = posterior.neighbor(N, coord)
@@ -81,7 +75,8 @@ def main():
     design_m = posterior.design(tp, press)    # design matrix
     
     # update
-    posterior.mcmc_update(theta, gamma, neigh, cov_m_inv, data, tp, design_m, p, N, dirname)
+    pdb.set_trace()
+    posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
     
 
 if __name__ == '__main__':
