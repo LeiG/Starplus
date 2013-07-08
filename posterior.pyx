@@ -284,7 +284,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
     comb = np.vstack((comb_cur, comb_cur))
     
-    thresh = 1000
+    thresh = 100
     
     while 1:
         n += 1  # counts
@@ -312,7 +312,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
             f_n.write(str(n))
         
         # evaluate mcse
-        comb_cur = np.append(gamma_cur, theta_cur)
+        comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
         comb = np.vstack((comb, comb_cur))  
         if n > thresh:
             thresh += 100
