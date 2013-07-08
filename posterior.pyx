@@ -36,7 +36,7 @@ def mcse(np.ndarray[double, ndim = 2] y):
         mu_hat[d] = np.mean(batch[d])
         se_hat[d] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1))
         
-    return mu_hat, se_hat
+    return se_hat
 
 
 #### neighborhood structure ####
@@ -273,7 +273,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     cdef unsigned int n = 0   # start simulation
     cdef int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
-    cdef np.ndarray[double, ndim = 1] theta_cur, comb_cur, e, se, ssd
+    cdef np.ndarray[double, ndim = 1] theta_cur, comb_cur, se, ssd
     cdef dict gamma
     
     # initial values
@@ -318,7 +318,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
             thresh += 100
             with open(dirname+'/comb.txt', 'w') as f_comb:
                 pickle.dump(comb, f_comb)
-            [e, se] = mcse(comb.T)
+            se = mcse(comb.T)[0].flatten()
             ssd = np.std(comb, 0)
             if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon = 0.05
                 break
