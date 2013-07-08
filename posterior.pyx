@@ -307,6 +307,9 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
         # write theta in file
         with open(dirname+'/theta.txt', 'w') as f_theta:
             pickle.dump(theta, f_theta)
+            
+        with open(dirname+'/n.txt', 'w') as f_n:
+            f_n.write(str(n))
         
         # evaluate mcse
         comb_cur = np.append(gamma_cur, theta_cur)
