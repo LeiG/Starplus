@@ -9,7 +9,7 @@ Posterior analysis for hierarchical model of fMRI data
 #cython:wraparound(False)
 
 
-#import numpy as np
+import numpy as np
 cimport numpy as np
 
 np.import_array()
