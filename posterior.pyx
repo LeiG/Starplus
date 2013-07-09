@@ -5,12 +5,14 @@ Posterior analysis for hierarchical model of fMRI data
 '''
 
 
-#cython: boundscheck=False
-#cython: wraparound=False
+#cython:boundscheck(False)
+#cython:wraparound(False)
 
 
-import numpy as np
+#import numpy as np
 cimport numpy as np
+
+np.import_array()
 
 import copy
 from numpy.linalg import inv
@@ -19,10 +21,10 @@ import pickle
 from scipy.stats import norm
 
 #### mcmcse.mcse function ####
-def mcse(np.ndarray[double, ndim = 2] y):
+cpdef np.ndarray[double, ndim = 2] mcse(np.ndarray[double, ndim = 2] y):
     
     cdef unsigned int length = y.shape[1]
-    cdef int dim = y.shape[0]
+    cdef unsigned int dim = y.shape[0]
     cdef unsigned int b = np.int(np.sqrt(length))
     cdef unsigned int a = length//b
     cdef unsigned int d, k
@@ -40,10 +42,10 @@ def mcse(np.ndarray[double, ndim = 2] y):
 
 
 #### neighborhood structure ####
-def neighbor(int N, np.ndarray[double, ndim = 2] coord):
+def neighbor(unsigned int N, np.ndarray[double, ndim = 2] coord):
 
     cdef dict output = {} # dict for neighbor
-    cdef int v, k
+    cdef unsigned int v, k
     cdef double dis = 0.0
     cdef np.ndarray w = np.zeros([N, N], dtype = np.float)
     
@@ -67,13 +69,13 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
 
     cdef double rho = x[0]
     cdef double sig = x[1]
-    cdef int T_int = len(y)
+    cdef unsigned int T_int = len(y)
     cdef double T = np.float(T_int)
     cdef double part_1 = 0.0
     cdef double part_2 = 0.0
     cdef double part_3 = 0.0
     cdef np.ndarray[double, ndim = 2] hess = np.zeros((2, 2), dtype = np.float)
-    cdef int i
+    cdef unsigned int i
     cdef double loglikelihood, der_rho, der_sig
     
     for i in range(T_int - 1):
@@ -111,9 +113,9 @@ def Newton(np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data):
     return y_new
     
 # MLE for rho and sigma
-def rhosig_mle(np.ndarray[double, ndim = 2] data, int N):
+def rhosig_mle(np.ndarray[double, ndim = 2] data, unsigned int N):
 
-    cdef int v
+    cdef unsigned int v
     cdef np.ndarray output = np.zeros((N, 2), dtype = np.float)
     cdef np.ndarray x_0 = np.array([0.0, 1.0])
     
@@ -124,9 +126,9 @@ def rhosig_mle(np.ndarray[double, ndim = 2] data, int N):
     
     
 #### covariance matrix ####
-def cov_matrix(np.ndarray[double, ndim = 1] rho, int N, int tp):
+def cov_matrix(np.ndarray[double, ndim = 1] rho, unsigned int N, unsigned int tp):
     
-    cdef int v, i, j
+    cdef unsigned int v, i, j
     cdef np.ndarray cov = np.zeros([tp, tp], dtype = np.float)
     cdef np.ndarray output = np.zeros([N, tp, tp], dtype = np.float)
     cdef np.ndarray output_inv = np.zeros([N, tp, tp], dtype = np.float)
@@ -146,7 +148,7 @@ def cov_matrix(np.ndarray[double, ndim = 1] rho, int N, int tp):
 def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):
     
     cdef np.ndarray[double, ndim = 1] output = np.arange(np.float(np.size(sti)))
-    cdef int value, i
+    cdef unsigned int value, i
     
     for value in output:
         output[value] = 0.0
@@ -154,14 +156,14 @@ def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):
             output[value] += hrf[i]*sti[value - i]
     return output
     
-def design(int tp, double press):
+cpdef np.ndarray[double, ndim = 2] design(unsigned int tp, double press):
     
     cdef np.ndarray sti_0 = np.zeros(tp, dtype = np.float)
     cdef np.ndarray sti_1 = np.zeros(tp, dtype = np.float)
     cdef np.ndarray sti_2 = np.zeros(tp, dtype = np.float)
     cdef np.ndarray hrf = np.zeros(tp, dtype = np.float)
     cdef np.ndarray t = np.arange(0, np.float(tp)/2.0, 0.5)
-    cdef int tt
+    cdef unsigned int tt
     cdef double t_press = min(12.0, press)
     cdef np.ndarray output = np.zeros((tp, 4), dtype = np.float)
 
@@ -191,10 +193,10 @@ def design(int tp, double press):
 
 
 #### Ising prior ####
-def log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, int N):
+cpdef double log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, unsigned int N):
     
-    cdef double output = 0
-    cdef int v, k
+    cdef double output = 0.0
+    cdef unsigned int v, k
     
     for v in range(N):
         for k in neigh[v]:
@@ -206,7 +208,7 @@ def log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, int 
     
 #### MCMC components ####
 # S function
-def S(int v, np.ndarray[double, ndim = 2] cov_inv, np.ndarray[double, ndim = 2] gamma, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design):
+cpdef np.ndarray[double, ndim = 2] S(int v, np.ndarray[double, ndim = 2] cov_inv, np.ndarray[double, ndim = 2] gamma, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design):
     
     cdef np.ndarray[double, ndim = 2] d_nonzero, beta, output
     cdef np.ndarray[double, ndim = 2] y = data.reshape(tp, 1)
@@ -217,13 +219,13 @@ def S(int v, np.ndarray[double, ndim = 2] cov_inv, np.ndarray[double, ndim = 2] 
     return output
 
 # update gamma
-def update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef np.ndarray[double, ndim = 2] update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
     cdef double prop_part = 0
     cdef double r, u, S1, S2
-    cdef int k
+    cdef unsigned int k
     
     for k in neigh:
         prop_part += 1.0-2.0*cur[k, j]
@@ -241,9 +243,9 @@ def update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double th
     
 
 # update theta
-def update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, int N):
+cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N):
         
-    cdef int theta_max = 2   # theta_max
+    cdef unsigned int theta_max = 2   # theta_max
     cdef np.ndarray[double, ndim = 1] cur = np.copy(theta_cur)
     cdef np.ndarray[double, ndim = 1] temp = np.copy(theta_cur)
     cdef double log_r, r, u
@@ -267,11 +269,11 @@ def update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[doubl
     
     
 #### MCMC updates ####
-def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
+def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
     cdef unsigned int thresh   # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
-    cdef int v, j
+    cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
     cdef np.ndarray[double, ndim = 1] theta_cur, comb_cur, se, ssd
     cdef dict gamma
@@ -284,7 +286,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
     comb = np.vstack((comb_cur, comb_cur))
     
-    thresh = 100
+    thresh = 1000
     
     while 1:
         n += 1  # counts
