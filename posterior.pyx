@@ -223,7 +223,7 @@ cpdef np.ndarray[double, ndim = 2] update_gamma(unsigned int v, unsigned int j, 
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
-    cdef double prop_part = 0
+    cdef double prop_part = 0.0
     cdef double r, u, S1, S2
     cdef unsigned int k
     
@@ -241,6 +241,30 @@ cpdef np.ndarray[double, ndim = 2] update_gamma(unsigned int v, unsigned int j, 
     
     return cur
     
+# log ratio of normalizing constant by path sampling
+cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N):
+    
+    cdef double low = min(cur[j], temp[j])
+    cdef double high = max(cur[j], temp[j])
+    cdef np.ndarray[double, ndim = 2] gamma_path = np.copy(gamma_cur)
+    cdef np.ndarray[double, ndim = 1] theta_path = np.copy(temp)
+    cdef unsigned int iter = 0
+    cdef unsigned int v, k
+    cdef double prop_part = 0.0
+    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path, gamma_path, neigh, N))
+    
+    while iter < 1000000:
+        iter += 1   # iterations
+        theta_path[j] = np.random.uniform(low, high)    # generate transitional theta
+        for v in range(N):
+            for k in neigh[v]:
+                prop_part += 1.0-2.0*gamma_path[k, j]
+            gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(theta_path*prop_part))))
+        sample = np.append(sample, log_Ising(theta_path, gamma_path, neigh, N))
+    if cur[j] > temp[j]:
+        return np.average(sample)
+    else:
+        return -np.average(sample)
 
 # update theta
 cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N):
@@ -256,7 +280,7 @@ cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[doubl
     elif temp[j] > theta_max or temp[j] < 0:
         cur[j] = cur[j]
     else:
-        log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
+        log_r = log_const_ratio(j, cur, temp, gamma_cur, neigh, N)+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
         else:
@@ -271,7 +295,7 @@ cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[doubl
 #### MCMC updates ####
 def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh   # threshold for checking mcmcse
+    cdef unsigned int thresh = 1000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
@@ -283,11 +307,9 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     gamma = {0 : np.zeros((N, p))}    # indicator gamma
     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
     
-    comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
+    comb_cur = np.append(gamma[n][:, 2:p].flatten(), theta[n].flatten())  # storage of all parameters
     comb = np.vstack((comb_cur, comb_cur))
-    
-    thresh = 1000
-    
+            
     while 1:
         n += 1  # counts
         theta_cur = np.copy(theta[n-1, :])  # latest theta
@@ -314,8 +336,9 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
             f_n.write(str(n))
         
         # evaluate mcse
-        comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
-        comb = np.vstack((comb, comb_cur))  
+        comb_cur = np.append(gamma_cur[:, 2:p].flatten(), theta_cur.flatten())
+        comb = np.vstack((comb, comb_cur))
+              
         if n > thresh:
             thresh += 100
             with open(dirname+'/comb.txt', 'w') as f_comb:
