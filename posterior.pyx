@@ -295,7 +295,7 @@ cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[doubl
 #### MCMC updates ####
 def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 1000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 100000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
@@ -340,7 +340,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
         comb = np.vstack((comb, comb_cur))
               
         if n > thresh:
-            thresh += 100
+            thresh += 10000
             with open(dirname+'/comb.txt', 'w') as f_comb:
                 pickle.dump(comb, f_comb)
             se = mcse(comb.T)[0].flatten()
