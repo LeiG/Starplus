@@ -262,12 +262,12 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(theta_path*prop_part))))
         sample = np.append(sample, log_Ising(theta_path, gamma_path, neigh, N))
     if cur[j] > temp[j]:
-#         with open(dirname+'/const.txt', 'a') as f_const:
-#             pickle.dump(np.average(sample), f_const)
+        with open(dirname+'/const.txt', 'a') as f_const:
+            pickle.dump(np.average(sample), f_const)
         return np.average(sample)
     else:
-#         with open(dirname+'/const.txt', 'a') as f_const:
-#             pickle.dump(np.average(sample), f_const)
+        with open(dirname+'/const.txt', 'a') as f_const:
+            pickle.dump(np.average(sample), f_const)
         return -np.average(sample)
 
 # update theta
