@@ -242,7 +242,7 @@ cpdef np.ndarray[double, ndim = 2] update_gamma(unsigned int v, unsigned int j, 
     return cur
     
 # log ratio of normalizing constant by path sampling
-cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N):
+cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname):
     
     cdef double low = min(cur[j], temp[j])
     cdef double high = max(cur[j], temp[j])
@@ -262,12 +262,16 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(theta_path*prop_part))))
         sample = np.append(sample, log_Ising(theta_path, gamma_path, neigh, N))
     if cur[j] > temp[j]:
+#         with open(dirname+'/const.txt', 'a') as f_const:
+#             pickle.dump(np.average(sample), f_const)
         return np.average(sample)
     else:
+#         with open(dirname+'/const.txt', 'a') as f_const:
+#             pickle.dump(np.average(sample), f_const)
         return -np.average(sample)
 
 # update theta
-cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N):
+cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname):
         
     cdef unsigned int theta_max = 2   # theta_max
     cdef np.ndarray[double, ndim = 1] cur = np.copy(theta_cur)
@@ -280,7 +284,7 @@ cpdef np.ndarray[double, ndim = 1] update_theta(unsigned int j, np.ndarray[doubl
     elif temp[j] > theta_max or temp[j] < 0:
         cur[j] = cur[j]
     else:
-        log_r = log_const_ratio(j, cur, temp, gamma_cur, neigh, N)+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
+        log_r = log_const_ratio(j, cur, temp, gamma_cur, neigh, N, dirname)+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
         else:
@@ -326,7 +330,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
         
         # update theta
         for j in range(p):
-            theta_cur = update_theta(j, theta_cur, gamma_cur, neigh, N)   # update theta
+            theta_cur = update_theta(j, theta_cur, gamma_cur, neigh, N, dirname)   # update theta
         theta = np.vstack([theta, theta_cur])
         # write theta in file
         with open(dirname+'/theta.txt', 'w') as f_theta:

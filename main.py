@@ -74,6 +74,8 @@ def main():
     design_m = posterior.design(tp, press)    # design matrix
     
     # update
+    f_const = open(dirname+'/const.txt', 'w')
+    f_const.close()
     posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
     
 
