@@ -38,20 +38,24 @@ def main():
     roi = file['meta']['colToROI'][0, 0]    # anatomical regions
     action = file['info']['actionRT'][0] # action time
     
+    # ROI
+#     G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']
+    G = ['CALC']
+    voi = [v for v in xrange(N) if roi[v] in G] # voxels of interests
+    
     # set parameters
     tr = 3-1  # inference for the third trail    P -> S
     press = (action[tr][0][0] > 0)*(action[tr][0][0]/1000.0+8.0)+(action[tr][0][0] == 0)*(4.0+8.0)  # second stimulus on the screen
     p = 4   # number of parameters
-    data = raw[tr, 0]   # abstracted data
+    data = raw[tr, 0][:, voi]   # abstracted data
     N = data.shape[1]  # number of voxels
     tp = data.shape[0]   # number of time points
-    a = np.log(0.1/(1.0-0.1))    # external field parameter
-    G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']    # anatomical interested region
-    q = 0.8722  # threshold for activation in voxels
+#     a = np.log(0.1/(1.0-0.1))    # external field parameter
+#     q = 0.8722  # threshold for activation in voxels
     
     
     # estimates
-    neighbor = posterior.neighbor(N, coord)
+    neighbor = posterior.neighbor(N, coord[voi])
     neigh = neighbor[0] # neighborhood structure
     weight = neighbor[1]    # weights
     with open(dirname+'/neigh.txt', 'w') as f_neigh:

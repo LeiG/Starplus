@@ -198,9 +198,11 @@ def loglike_ar_hess(x, y):  # hessian matrix of log likelihood for AR(1) model
 def Newton(f, f_der, f_hess, x_0, data, eps = 10**(-6)):    # Newton's method
     f_0 = f(x_0, data)  # benchmark
     x_0 -= np.dot(inv(f_hess(x_0, data)), f_der(x_0, data))    # update
+#     print x_0
     while abs(f(x_0, data) - f_0) > eps:
         f_0 = f(x_0, data)  # benchmark
         x_0 -= np.dot(inv(f_hess(x_0, data)), f_der(x_0, data))
+#         print x_0
     return x_0
 
 # golden region search method for rho    
