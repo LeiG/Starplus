@@ -40,8 +40,10 @@ def main():
     
     # ROI
 #     G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']
+    totdata = raw[tr, 0]   # total abstracted data
+    totN = totdata.shape[1]  # total number of voxels
     G = ['CALC']
-    voi = [v for v in xrange(N) if roi[v] in G] # voxels of interests
+    voi = [v for v in xrange(totN) if roi[v] in G] # voxels of interests
     
     # set parameters
     tr = 3-1  # inference for the third trail    P -> S
