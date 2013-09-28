@@ -40,13 +40,13 @@ def main():
     
     # ROI
 #     G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']
+    tr = 3-1  # inference for the third trail    P -> S
     totdata = raw[tr, 0]   # total abstracted data
     totN = totdata.shape[1]  # total number of voxels
     G = ['CALC']
     voi = [v for v in xrange(totN) if roi[v] in G] # voxels of interests
     
     # set parameters
-    tr = 3-1  # inference for the third trail    P -> S
     press = (action[tr][0][0] > 0)*(action[tr][0][0]/1000.0+8.0)+(action[tr][0][0] == 0)*(4.0+8.0)  # second stimulus on the screen
     p = 4   # number of parameters
     data = raw[tr, 0][:, voi]   # abstracted data
