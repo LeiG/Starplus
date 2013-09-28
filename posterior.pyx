@@ -324,7 +324,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
         
         # update theta
         for j in range(p):
-            theta_cur = update_theta(j, theta_cur, gamma_cur, neigh, N, dirname)   # update theta
+            theta_cur[j] = update_theta(j, theta_cur, gamma_cur, neigh, N, dirname)   # update theta
         theta = np.vstack([theta, theta_cur])
             
         with open(dirname+'/n.txt', 'w') as f_n:
