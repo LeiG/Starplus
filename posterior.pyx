@@ -296,7 +296,7 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
 #### MCMC updates ####
 def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 100000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 10000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
@@ -306,9 +306,9 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     # initial values
     theta = np.ones((1, p)) # strength of interaction
     gamma = {0 : np.zeros((N, p))}    # indicator gamma
-    gamma[0][:, 0:2] = 1  # first two columns are fixed one's
+#     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
     
-    comb_cur = np.append(gamma[n][:, 2:p].flatten(), theta[n].flatten())  # storage of all parameters
+    comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
     comb = np.vstack((comb_cur, comb_cur))
             
     while 1:
@@ -331,11 +331,11 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
             f_n.write(str(n))
         
         # evaluate mcse
-        comb_cur = np.append(gamma_cur[:, 2:p].flatten(), theta_cur.flatten())
+        comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
         comb = np.vstack((comb, comb_cur))
               
         if n > thresh:
-            thresh += 10000
+            thresh += 1000
             
             # write gamma in file
             with open(dirname+'/gamma.txt', 'w') as f_gamma:
