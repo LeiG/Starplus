@@ -193,12 +193,13 @@ cpdef np.ndarray[double, ndim = 2] design(unsigned int tp, double press):
 
 
 #### Ising prior ####
-cpdef double log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, unsigned int N):
+cpdef double log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, unsigned int N, double a):
     
     cdef double output = 0.0
     cdef unsigned int v, k
     
     for v in range(N):
+        output += a*gamma[v]
         for k in neigh[v]:
             if gamma[k] == gamma[v]:
                 output += theta # subject to neighborhood structure/ weight changes
@@ -210,12 +211,14 @@ cpdef double log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict ne
 # S function
 cpdef np.ndarray[double, ndim = 2] S(int v, np.ndarray[double, ndim = 2] cov_inv, np.ndarray[double, ndim = 2] gamma, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design):
     
-    cdef np.ndarray[double, ndim = 2] d_nonzero, beta, output
+    cdef np.ndarray[double, ndim = 2] d_nonzero, beta, output, temp1, temp2
     cdef np.ndarray[double, ndim = 2] y = data.reshape(tp, 1)
     
     d_nonzero = design[:,np.nonzero(gamma[v,:])[0]] # design matrix nonzero part
-    beta = inv((d_nonzero.T.dot(cov_inv)).dot(d_nonzero)).dot((d_nonzero.T.dot(cov_inv)).dot(y))
-    output = ((y-d_nonzero.dot(beta)).T.dot(cov_inv)).dot(y-d_nonzero.dot(beta))
+    temp1 = d_nonzero.T.dot(cov_inv)
+    beta = inv(temp1.dot(d_nonzero)).dot(temp1.dot(y))
+    temp2 = y-d_nonzero.dot(beta)
+    output = (temp2.T.dot(cov_inv)).dot(temp2)
     return output
 
 # update gamma
@@ -223,14 +226,14 @@ cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndi
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
-    cdef double prop_part = 0.0
+    cdef double prop_part = -0.1*cur[v, j]
     cdef double r, u, S1, S2
     cdef unsigned int k
     
     for k in neigh:
-        prop_part += 1.0-2.0*cur[k, j]
+        prop_part += theta_cur*(1.0-2.0*cur[k, j])
     
-    temp[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(theta_cur*prop_part))))
+    temp[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(prop_part))))
     if temp[v, j] != cur[v, j]:
         S1 = S(v, cov_m_inv, temp, data, tp, design_m)
         S2 = S(v, cov_m_inv, cur, data, tp, design_m)
@@ -242,32 +245,36 @@ cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndi
     return cur[v, j]
     
 # log ratio of normalizing constant by path sampling
-# cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname):
-#     
-#     cdef double low = min(cur[j], temp[j])
-#     cdef double high = max(cur[j], temp[j])
-#     cdef np.ndarray[double, ndim = 2] gamma_path = np.copy(gamma_cur)
-#     cdef np.ndarray[double, ndim = 1] theta_path = np.copy(temp)
-#     cdef unsigned int iter = 0
-#     cdef unsigned int v, k
+cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m):
+    
+    cdef double low = min(cur[j], temp[j])
+    cdef double high = max(cur[j], temp[j])
+    cdef double highlow = high - low
+    cdef np.ndarray[double, ndim = 2] gamma_path = np.copy(gamma_cur)
+    cdef np.ndarray[double, ndim = 1] theta_path = np.copy(temp)
+    cdef unsigned int iter = 0
+    cdef unsigned int v, k
 #     cdef double prop_part = 0.0
-#     cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path, gamma_path, neigh, N))
-#     
-#     while iter < 1000000:
-#         iter += 1   # iterations
-#         theta_path[j] = np.random.uniform(low, high)    # generate transitional theta
-#         for v in range(N):
+    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path, gamma_path, neigh, N, 0.1)/highlow)
+    
+    while iter < 1000:
+        iter += 1   # iterations
+        theta_path[j] = np.random.uniform(low, high)    # generate transitional theta
+        for v in range(N):
+            # prop_part = -0.1*gamma_path[v, j]
 #             for k in neigh[v]:
-#                 prop_part += 1.0-2.0*gamma_path[k, j]
-#             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(theta_path*prop_part))))
-#         sample = np.append(sample, log_Ising(theta_path, gamma_path, neigh, N))
-#     if cur[j] > temp[j]:
-#         return np.average(sample)
-#     else:
-#         return -np.average(sample)
+#                 prop_part += theta_path*(1.0-2.0*gamma_path[k, j])
+#             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(prop_part))))
+            gamma_path[v, j] = update_gamma(v, j, gamma_path, theta_path[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m)
+            
+        sample = np.append(sample, log_Ising(theta_path[j], gamma_path, neigh, N, 0.0)/highlow)
+    if cur[j] > temp[j]:
+        return np.average(sample)
+    else:
+        return -np.average(sample)
 
 # update theta
-cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname):
+cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m):
         
     cdef unsigned int theta_max = 2   # theta_max
     cdef np.ndarray[double, ndim = 1] cur = np.copy(theta_cur)
@@ -280,8 +287,8 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     elif temp[j] > theta_max or temp[j] < 0:
         cur[j] = cur[j]
     else:
-#         log_r = log_const_ratio(j, cur, temp, gamma_cur, neigh, N, dirname)+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
-        log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
+        log_r = log_const_ratio(j, cur, temp, gamma_cur, neigh, N, dirname, cov_m_inv, data, tp, design_m)+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
+#         log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
         else:
@@ -324,7 +331,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
         
         # update theta
         for j in range(p):
-            theta_cur[j] = update_theta(j, theta_cur, gamma_cur, neigh, N, dirname)   # update theta
+            theta_cur[j] = update_theta(j, theta_cur, gamma_cur, neigh, N, dirname, cov_m_inv, data, tp, design_m)   # update theta
         theta = np.vstack([theta, theta_cur])
             
         with open(dirname+'/n.txt', 'w') as f_n:
@@ -346,7 +353,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
                 
             se = mcse(comb.T)[0].flatten()
             ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1./n < 0.05*ssd): # 90% and epsilon = 0.05
+            if np.prod(se*1.645+1.0/n < 0.05*ssd): # 90% and epsilon = 0.05
                 break
                 
     return gamma, theta 
