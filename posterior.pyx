@@ -30,13 +30,14 @@ cpdef np.ndarray[double, ndim = 2] mcse(np.ndarray[double, ndim = 2] y):
     cdef unsigned int d, k
     cdef np.ndarray batch = np.zeros([dim, a], dtype = np.float)
     cdef np.ndarray mu_hat = np.zeros([dim, 1], dtype = np.float)
-    cdef np.ndarray se_hat = np.zeros([dim, 1], dtype = np.float)    
+    cdef np.ndarray se_hat = np.zeros([dim, 2], dtype = np.float)    
     
     for d in range(dim):
         for k in range(a):
             batch[d, k] = np.mean(y[d, (k*b):((k+1)*b)]) 
         mu_hat[d] = np.mean(batch[d])
-        se_hat[d] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1))
+        se_hat[d, 1] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1)) #mcmc se
+        se_hat[d, 2] = np.std(y[d]) # std
         
     return se_hat
 
@@ -306,28 +307,30 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int thresh = 100000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
-    cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
-    cdef np.ndarray[double, ndim = 1] theta_cur, comb_cur, se, ssd
-    cdef dict gamma
+    cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma
+    cdef np.ndarray[double, ndim = 1] theta_cur
+#     cdef dict gamma
     
     # initial values
     theta = np.ones((1, p)) # strength of interaction
-    gamma = {0 : np.ones((N, p))}    # indicator gamma
+    theta_cur = np.copy(theta[0])
+    gamma_cur = np.ones((N, p))
+    gamma = np.ones((1, N*p))   # indicator gamma
+    
+#     gamma = {0 : np.ones((N, p))}    # indicator gamma
 #     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
     
-    comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
-    comb = np.vstack((comb_cur, comb_cur))
+#     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
+#     comb = np.vstack((comb_cur, comb_cur))
             
     while 1:
         n += 1  # counts
-        theta_cur = np.copy(theta[n-1, :])  # latest theta
-        gamma_cur = np.copy(gamma[n-1])  # laste gamma
         
         # update gamma
         for j in range(p):
             for v in range(N):
                 gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
-        gamma.update({n: gamma_cur})
+        gamma = np.vstack([gamma, gamma_cur.flatten()])
         
         # update theta
         for j in range(p):
@@ -338,8 +341,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             f_n.write(str(n))
         
         # evaluate mcse
-        comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
-        comb = np.vstack((comb, comb_cur))
+#         comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
+#         comb = np.vstack((comb, comb_cur))
               
         if n > thresh:
             thresh += 10000
@@ -351,9 +354,12 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             with open(dirname+'/theta.txt', 'w') as f_theta:
                 pickle.dump(theta, f_theta)
                 
-            se = mcse(comb.T)[0].flatten()
-            ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
+            mcse_theta = mcse(theta.T)
+            mcse_gamma = mcse(gamma.T)
+            
+            if np.prod(mcse_theta[:, 0]*1.645+1.0/n < 0.1*mcse_theta[:, 1]) and np.prod(mcse_gamma[:, 0]*1.645+1.0/n < 0.1*mcse_gamma[:, 1]):
                 break
+#             if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
+#                 break
                 
     return 0 
