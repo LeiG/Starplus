@@ -308,7 +308,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma
-    cdef np.ndarray[double, ndim = 1] theta_cur
+    cdef np.ndarray[double, ndim = 1] theta_cur, cond_theta, cond_gamma
 #     cdef dict gamma
     
     # initial values
@@ -357,7 +357,15 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             mcse_theta = mcse(theta.T)
             mcse_gamma = mcse(gamma.T)
             
-            if np.prod(mcse_theta[:, 0]*1.645+1.0/n < 0.1*mcse_theta[:, 1]) and np.prod(mcse_gamma[:, 0]*1.645+1.0/n < 0.1*mcse_gamma[:, 1]):
+            cond_theta = mcse_theta[:, 0]*1.645+1.0/n < 0.1*mcse_theta[:, 1]
+            cond_gamma = mcse_gamma[:, 0]*1.645+1.0/n < 0.1*mcse_gamma[:, 1]
+            
+            with open(dirname+'/cond_theta.txt', 'w') as f_cond_theta:
+                f_cond_theta.write(str(cond_theta))
+            with open(dirname+'/cond_gamma.txt', 'w') as f_cond_gamma:
+                f_cond_gamma.write(str(cond_gamma))
+            
+            if np.prod(cond_theta) and np.prod(cond_gamma):
                 break
 #             if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
 #                 break
