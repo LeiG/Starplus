@@ -301,9 +301,9 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     
     
 #### MCMC updates ####
-def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
+cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 10000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 100000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, comb, theta
@@ -312,7 +312,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
     
     # initial values
     theta = np.ones((1, p)) # strength of interaction
-    gamma = {0 : np.zeros((N, p))}    # indicator gamma
+    gamma = {0 : np.ones((N, p))}    # indicator gamma
 #     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
     
     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
@@ -342,7 +342,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
         comb = np.vstack((comb, comb_cur))
               
         if n > thresh:
-            thresh += 1000
+            thresh += 10000
             
             # write gamma in file
             with open(dirname+'/gamma.txt', 'w') as f_gamma:
@@ -353,7 +353,7 @@ def mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[d
                 
             se = mcse(comb.T)[0].flatten()
             ssd = np.std(comb, 0)
-            if np.prod(se*1.645+1.0/n < 0.05*ssd): # 90% and epsilon = 0.05
+            if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
                 break
                 
-    return gamma, theta 
+    return 0 
