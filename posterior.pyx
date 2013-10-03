@@ -255,6 +255,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
     cdef np.ndarray[double, ndim = 1] theta_path = np.copy(temp)
     cdef unsigned int iter = 0
     cdef unsigned int v, k
+    cdef double output
 #     cdef double prop_part = 0.0
     cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path, gamma_path, neigh, N, 0.1)/highlow)
     
@@ -268,11 +269,13 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
 #             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(prop_part))))
             gamma_path[v, j] = update_gamma(v, j, gamma_path, theta_path[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m)
             
-        sample = np.append(sample, log_Ising(theta_path[j], gamma_path, neigh, N, 0.0)/highlow)
+        sample = np.append(sample, (log_Ising(theta_path[j], gamma_path, neigh, N, 0.0)/highlow))
+        
+    output = np.average(sample)
     if cur[j] > temp[j]:
-        return np.average(sample)
+        return output
     else:
-        return -np.average(sample)
+        return -output
 
 # update theta
 cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m):
