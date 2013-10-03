@@ -278,9 +278,9 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
         return -output
 
 # update theta
-cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, bytes dirname, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, double log_const, dict neigh, unsigned int N):
         
-    cdef unsigned int theta_max = 2   # theta_max
+    cdef double theta_max = 2.0   # theta_max
     cdef np.ndarray[double, ndim = 1] cur = np.copy(theta_cur)
     cdef np.ndarray[double, ndim = 1] temp = np.copy(theta_cur)
     cdef double log_r, r, u
@@ -291,7 +291,7 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     elif temp[j] > theta_max or temp[j] < 0:
         cur[j] = cur[j]
     else:
-        log_r = log_const_ratio(j, cur, temp, gamma_cur, neigh, N, dirname, cov_m_inv, data, tp, design_m)+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
+        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
 #         log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
@@ -311,7 +311,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma
-    cdef np.ndarray[double, ndim = 1] theta_cur, cond_theta, cond_gamma
+    cdef np.ndarray[double, ndim = 1] theta_cur, cond_theta, cond_gamma, theta_test
+    cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
 #     cdef dict gamma
     
     # initial values
@@ -319,6 +320,12 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     theta_cur = np.copy(theta[0])
     gamma_cur = np.ones((N, p))
     gamma = np.ones((1, N*p))   # indicator gamma
+    
+    theta_test = np.array([np.random.uniform(0.0, 2.0) for j in range(p)])
+    
+    # pre-run ratio of normalizing constant
+    for j in range(p):
+        log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_cur, neigh, N, dirname, cov_m_inv, data, tp, design_m)
     
 #     gamma = {0 : np.ones((N, p))}    # indicator gamma
 #     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
@@ -337,7 +344,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         
         # update theta
         for j in range(p):
-            theta_cur[j] = update_theta(j, theta_cur, gamma_cur, neigh, N, dirname, cov_m_inv, data, tp, design_m)   # update theta
+            theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
         theta = np.vstack([theta, theta_cur])
             
         with open(dirname+'/n.txt', 'w') as f_n:
