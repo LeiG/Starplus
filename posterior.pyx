@@ -307,7 +307,7 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
 #### MCMC updates ####
 cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 100000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 1000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma
@@ -327,6 +327,9 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     for j in range(p):
         log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_cur, neigh, N, dirname, cov_m_inv, data, tp, design_m)
     
+    with open(dirname+'/logconst.txt', 'w') as f_log_const:
+        f_log_const.write(str(log_const))
+        
 #     gamma = {0 : np.ones((N, p))}    # indicator gamma
 #     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
     
@@ -354,8 +357,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #         comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
 #         comb = np.vstack((comb, comb_cur))
               
-        if n > thresh:
-            thresh += 10000
+        if n >= thresh:
+            thresh += 1000
             
             # write gamma in file
             with open(dirname+'/gamma.txt', 'w') as f_gamma:
@@ -367,8 +370,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             mcse_theta = mcse(theta.T)
             mcse_gamma = mcse(gamma.T)
             
-            cond_theta = mcse_theta[:, 0]*1.645+1.0/n < 0.1*mcse_theta[:, 1]
-            cond_gamma = mcse_gamma[:, 0]*1.645+1.0/n < 0.1*mcse_gamma[:, 1]
+            cond_theta = (mcse_theta[:, 0]*1.645+1.0/n < 0.1*mcse_theta[:, 1])
+            cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n < 0.1*mcse_gamma[:, 1])
             
             with open(dirname+'/cond_theta.txt', 'w') as f_cond_theta:
                 f_cond_theta.write(str(cond_theta))
