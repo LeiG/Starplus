@@ -36,8 +36,8 @@ cpdef np.ndarray[double, ndim = 2] mcse(np.ndarray[double, ndim = 2] y):
         for k in range(a):
             batch[d, k] = np.mean(y[d, (k*b):((k+1)*b)]) 
         mu_hat[d] = np.mean(batch[d])
-        se_hat[d, 1] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1)) #mcmc se
-        se_hat[d, 2] = np.std(y[d]) # std
+        se_hat[d, 0] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1)) #mcmc se
+        se_hat[d, 1] = np.std(y[d]) # std
         
     return se_hat
 
@@ -223,7 +223,7 @@ cpdef np.ndarray[double, ndim = 2] S(int v, np.ndarray[double, ndim = 2] cov_inv
     return output
 
 # update gamma
-cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[int, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
@@ -318,8 +318,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     # initial values
     theta = np.ones((1, p)) # strength of interaction
     theta_cur = np.copy(theta[0])
-    gamma_cur = np.ones((N, p))
-    gamma = np.ones((1, N*p))   # indicator gamma
+    gamma_cur = np.zeros((N, p))
+    gamma = np.zeros((1, N*p))   # indicator gamma
     
     theta_test = np.array([np.random.uniform(0.0, 2.0) for j in range(p)])
     
