@@ -223,7 +223,7 @@ cpdef np.ndarray[double, ndim = 2] S(int v, np.ndarray[double, ndim = 2] cov_inv
     return output
 
 # update gamma
-cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[int, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
@@ -373,10 +373,10 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n < 0.1*mcse_theta[:, 1])
             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n < 0.1*mcse_gamma[:, 1])
             
-            with open(dirname+'/cond_theta.txt', 'w') as f_cond_theta:
-                f_cond_theta.write(str(cond_theta))
-            with open(dirname+'/cond_gamma.txt', 'w') as f_cond_gamma:
-                f_cond_gamma.write(str(cond_gamma))
+#             with open(dirname+'/cond_theta.txt', 'w') as f_cond_theta:
+#                 f_cond_theta.write(str(cond_theta))
+#             with open(dirname+'/cond_gamma.txt', 'w') as f_cond_gamma:
+#                 f_cond_gamma.write(str(cond_gamma))
             
             if np.prod(cond_theta) and np.prod(cond_gamma):
                 break
