@@ -310,22 +310,25 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int thresh = 10000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
-    cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma
+    cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma, gamma_test
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
 #     cdef dict gamma
     
     # initial values
-    theta = np.ones((1, p)) # strength of interaction
+    theta = np.random.uniform(0.0, 2.0, size = (1, p)) # strength of interaction
     theta_cur = np.copy(theta[0])
-    gamma_cur = np.ones((N, p))
-    gamma = np.ones((1, N*p))   # indicator gamma
+    gamma_cur = np.random.randint(2, size = (N, p))
+    gamma_cur[:, 0:2] = 1.0
+    gamma = np.array(gamma_cur.T.flatten(), ndmin = 2)   # indicator gamma
     
-    theta_test = np.array([np.random.uniform(0.0, 2.0) for j in range(p)])
+    theta_test = np.random.uniform(0.0, 2.0, size = p)
+    gamma_test = np.random.randint(2, size = (N, p))
+    gamma_test[:, 0:2] = 1.0
     
     # pre-run ratio of normalizing constant
     for j in range(p):
-        log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_cur, neigh, N, cov_m_inv, data, tp, design_m)
+        log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_test, neigh, N, cov_m_inv, data, tp, design_m)
     
     with open(dirname+'/logconst.txt', 'w') as f_log_const:
         f_log_const.write(str(log_const))
@@ -340,10 +343,10 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         n += 1  # counts
         
         # update gamma
-        for j in range(p):
+        for j in range(2, p):
             for v in range(N):
                 gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
-        gamma = np.vstack([gamma, gamma_cur.flatten()])
+        gamma = np.vstack([gamma, gamma_cur.T.flatten()])
         
         # update theta
         for j in range(p):
@@ -368,15 +371,18 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 pickle.dump(theta, f_theta)
                 
             mcse_theta = mcse(theta.T)
-            mcse_gamma = mcse(gamma.T)
+            mcse_gamma = mcse(gamma[(2*N):(p*N)].T)
             
-            cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
-            cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
+#             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
+#             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
+            
+            cond_theta = (mcse_theta[:, 0]*1.645 - 0.1*mcse_theta[:, 1])
+            cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.1*mcse_gamma[:, 1])
             
             np.savetxt(dirname+'cond_theta.txt', cond_theta, delimiter=',')
             np.savetxt(dirname+'cond_gamma.txt', cond_gamma, delimiter=',')
             
-            if np.all(cond_theta < 0) and np.all(cond_gamma < 0):
+            if np.all(cond_theta <= 0) and np.all(cond_gamma <= 0):
                 break
 #             if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
 #                 break
