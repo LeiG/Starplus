@@ -318,8 +318,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     # initial values
     theta = np.ones((1, p)) # strength of interaction
     theta_cur = np.copy(theta[0])
-    gamma_cur = np.zeros((N, p))
-    gamma = np.zeros((1, N*p))   # indicator gamma
+    gamma_cur = np.ones((N, p))
+    gamma = np.ones((1, N*p))   # indicator gamma
     
     theta_test = np.array([np.random.uniform(0.0, 2.0) for j in range(p)])
     
