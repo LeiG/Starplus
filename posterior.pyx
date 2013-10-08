@@ -313,6 +313,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma, gamma_test
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
+    cdef double temp
 #     cdef dict gamma
     
     # initial values
@@ -338,6 +339,9 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     
 #     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
 #     comb = np.vstack((comb_cur, comb_cur))
+
+    f_accept = open(dirname+'/accept.txt', 'w')
+    f_accept.close()
             
     while 1:
         n += 1  # counts
@@ -350,7 +354,14 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         
         # update theta
         for j in range(p):
+            temp = theta_cur[j]
             theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
+            if temp == theta_cur[j]:
+                with open(dirname+'/accept.txt', 'a') as f_accpet:
+                    np.savetxt(f_accept, 0)
+            else:
+                with open(dirname+'/accept.txt', 'a') as f_accpet:
+                    np.savetxt(f_accept, 1)
         theta = np.vstack([theta, theta_cur])
             
         with open(dirname+'/n.txt', 'w') as f_n:
