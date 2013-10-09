@@ -319,12 +319,12 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     # initial values
     theta = np.random.uniform(0.0, 2.0, size = (1, p)) # strength of interaction
     theta_cur = np.copy(theta[0])
-    gamma_cur = np.random.randint(2, size = (N, p))
+    gamma_cur = 1.0*np.random.randint(2, size = (N, p))
     gamma_cur[:, 0:2] = 1.0
     gamma = np.array(gamma_cur.T.flatten(), ndmin = 2)   # indicator gamma
     
     theta_test = np.random.uniform(0.0, 2.0, size = p)
-    gamma_test = np.random.randint(2, size = (N, p))
+    gamma_test = 1.0*np.random.randint(2, size = (N, p))
     gamma_test[:, 0:2] = 1.0
     
     # pre-run ratio of normalizing constant
