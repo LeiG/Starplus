@@ -269,7 +269,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
 #             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(prop_part))))
             gamma_path[v, j] = update_gamma(v, j, gamma_path, theta_path[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m)
             
-        sample = np.append(sample, (log_Ising(theta_path[j], gamma_path, neigh, N, 0.0)/highlow))
+        sample = np.append(sample, (log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.0)/highlow))
         
     output = np.average(sample)
     if cur[j] > temp[j]:
@@ -358,10 +358,10 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
             if temp == theta_cur[j]:
                 with open(dirname+'/accept.txt', 'a') as f_accpet:
-                    np.savetxt(f_accept, 0)
+                    f_accept.write(str(0))
             else:
                 with open(dirname+'/accept.txt', 'a') as f_accpet:
-                    np.savetxt(f_accept, 1)
+                    f_accept.write(str(1))
         theta = np.vstack([theta, theta_cur])
             
         with open(dirname+'/n.txt', 'w') as f_n:
