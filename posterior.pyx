@@ -257,7 +257,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
     cdef unsigned int v, k
     cdef double output
 #     cdef double prop_part = 0.0
-    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path, gamma_path, neigh, N, 0.1)/highlow)
+    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow)
     
     while iter < 100000:
         iter += 1   # iterations
@@ -357,10 +357,10 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             temp = theta_cur[j]
             theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
             if temp == theta_cur[j]:
-                with open(dirname+'/accept.txt', 'a') as f_accpet:
+                with open(dirname+'/accept.txt', 'a') as f_accept:
                     f_accept.write(str(0))
             else:
-                with open(dirname+'/accept.txt', 'a') as f_accpet:
+                with open(dirname+'/accept.txt', 'a') as f_accept:
                     f_accept.write(str(1))
         theta = np.vstack([theta, theta_cur])
             
