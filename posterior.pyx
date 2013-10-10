@@ -285,13 +285,13 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     cdef np.ndarray[double, ndim = 1] temp = np.copy(theta_cur)
     cdef double log_r, r, u
     
-    temp[j] = np.random.normal(cur[j], 0.6)  # generate proposal r.v.
+    temp[j] = np.random.normal(cur[j], 0.06)  # generate proposal r.v.
     if cur[j] > theta_max or cur[j] < 0:
         cur[j] = temp[j]
     elif temp[j] > theta_max or temp[j] < 0:
         cur[j] = cur[j]
     else:
-        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
+        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.06)/norm.pdf(temp[j], temp[j], 0.06))
 #         log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
