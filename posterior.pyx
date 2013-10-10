@@ -390,8 +390,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             cond_theta = (mcse_theta[:, 0]*1.645 - 0.1*mcse_theta[:, 1])
             cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.1*mcse_gamma[:, 1])
             
-            np.savetxt(dirname+'cond_theta.txt', cond_theta, delimiter=',')
-            np.savetxt(dirname+'cond_gamma.txt', cond_gamma, delimiter=',')
+            np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
+            np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
             
             if np.all(cond_theta <= 0) and np.all(cond_gamma <= 0):
                 break
