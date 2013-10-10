@@ -257,7 +257,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
     cdef unsigned int v, k
     cdef double output
 #     cdef double prop_part = 0.0
-    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow)
+    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow, ndmin = 1)
     
     while iter < 100000:
         iter += 1   # iterations
