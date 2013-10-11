@@ -259,7 +259,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
 #     cdef double prop_part = 0.0
     cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow, ndmin = 1)
     
-    while iter < 100000:
+    while iter < 1000000:
         iter += 1   # iterations
         theta_path[j] = np.random.uniform(low, high)    # generate transitional theta
         for v in range(N):
@@ -307,7 +307,7 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
 #### MCMC updates ####
 cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 10000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 100000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma, gamma_test
@@ -372,7 +372,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #         comb = np.vstack((comb, comb_cur))
               
         if n >= thresh:
-            thresh += 1000
+            thresh += 10000
             
             # write gamma in file
             with open(dirname+'/gamma.txt', 'w') as f_gamma:
@@ -387,8 +387,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
 #             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
             
-            cond_theta = (mcse_theta[:, 0]*1.645 - 0.1*mcse_theta[:, 1])
-            cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.1*mcse_gamma[:, 1])
+            cond_theta = (mcse_theta[:, 0]*1.645 - 0.05*mcse_theta[:, 1])
+            cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.05*mcse_gamma[:, 1])
             
             np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
             np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
