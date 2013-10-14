@@ -259,7 +259,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
 #     cdef double prop_part = 0.0
     cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow, ndmin = 1)
     
-    while iter < 1000000:
+    while iter < 100000:
         iter += 1   # iterations
         theta_path[j] = np.random.uniform(low, high)    # generate transitional theta
         for v in range(N):
