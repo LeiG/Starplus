@@ -310,7 +310,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int thresh = 100000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
-    cdef np.ndarray[double, ndim = 2] gamma_cur, theta, gamma, mcse_theta, mcse_gamma, gamma_test
+    cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
     cdef double temp
@@ -321,7 +321,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     theta_cur = np.copy(theta[0])
     gamma_cur = 1.0*np.random.randint(2, size = (N, p))
     gamma_cur[:, 0:2] = 1.0
-    gamma = np.array(gamma_cur.T.flatten(), ndmin = 2)   # indicator gamma
+    gamma = np.array(gamma_cur[:, 2:4].T.flatten(), ndmin = 2)   # indicator gamma
     
     theta_test = np.random.uniform(0.0, 2.0, size = p)
     gamma_test = 1.0*np.random.randint(2, size = (N, p))
@@ -350,7 +350,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         for j in range(2, p):
             for v in range(N):
                 gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
-        gamma = np.vstack([gamma, gamma_cur.T.flatten()])
+        gamma = np.vstack([gamma, gamma_cur[:, 2:4].T.flatten()])
         
         # update theta
         for j in range(p):
@@ -375,14 +375,18 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             thresh += 10000
             
             # write gamma in file
-            with open(dirname+'/gamma.txt', 'w') as f_gamma:
-                pickle.dump(gamma, f_gamma)
-            # write theta in file
-            with open(dirname+'/theta.txt', 'w') as f_theta:
-                pickle.dump(theta, f_theta)
+#             with open(dirname+'/gamma.txt', 'w') as f_gamma:
+#                 pickle.dump(gamma, f_gamma)
+#             # write theta in file
+#             with open(dirname+'/theta.txt', 'w') as f_theta:
+#                 pickle.dump(theta, f_theta)
+            
+            np.savetxt(dirname+'/gamma.txt', gamma, delimiter=',')
+            np.savetxt(dirname+'/theta.txt', theta, delimiter=',')
+
                 
             mcse_theta = mcse(theta.T)
-            mcse_gamma = mcse(gamma[(2*N):(p*N)].T)
+            mcse_gamma = mcse(gamma.T)
             
 #             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
 #             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
