@@ -381,8 +381,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #             with open(dirname+'/theta.txt', 'w') as f_theta:
 #                 pickle.dump(theta, f_theta)
             
-            np.savetxt(dirname+'/gamma.txt', gamma, delimiter=',')
-            np.savetxt(dirname+'/theta.txt', theta, delimiter=',')
+            np.save(dirname+'/gamma.txt', gamma)
+            np.save(dirname+'/theta.txt', theta)
 
                 
             mcse_theta = mcse(theta.T)
