@@ -313,7 +313,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
-    cdef double temp
+#     cdef double temp
 #     cdef dict gamma
     
     # initial values
@@ -340,8 +340,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
 #     comb = np.vstack((comb_cur, comb_cur))
 
-    f_accept = open(dirname+'/accept.txt', 'w')
-    f_accept.close()
+#     f_accept = open(dirname+'/accept.txt', 'w')
+#     f_accept.close()
             
     while 1:
         n += 1  # counts
@@ -354,18 +354,16 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         
         # update theta
         for j in range(p):
-            temp = theta_cur[j]
+#             temp = theta_cur[j]
             theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
-            if temp == theta_cur[j]:
-                with open(dirname+'/accept.txt', 'a') as f_accept:
-                    f_accept.write(str(0))
-            else:
-                with open(dirname+'/accept.txt', 'a') as f_accept:
-                    f_accept.write(str(1))
+#             if temp == theta_cur[j]:
+#                 with open(dirname+'/accept.txt', 'a') as f_accept:
+#                     f_accept.write(str(0))
+#             else:
+#                 with open(dirname+'/accept.txt', 'a') as f_accept:
+#                     f_accept.write(str(1))
         theta = np.vstack([theta, theta_cur])
             
-        with open(dirname+'/n.txt', 'w') as f_n:
-            f_n.write(str(n))
         
         # evaluate mcse
 #         comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
@@ -373,6 +371,9 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
               
         if n >= thresh:
             thresh += 10000
+            
+            with open(dirname+'/n.txt', 'w') as f_n:
+                f_n.write(str(n))
             
             # write gamma in file
 #             with open(dirname+'/gamma.txt', 'w') as f_gamma:
@@ -401,5 +402,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 break
 #             if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
 #                 break
+    
+    with open(dirname+'/done.txt', 'w') as f_done:
+        f_done.write('done')
                 
     return 0 
