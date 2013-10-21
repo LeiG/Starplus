@@ -280,7 +280,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
 # update theta
 cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, double log_const, dict neigh, unsigned int N):
         
-    cdef double theta_max = 2.0   # theta_max
+    cdef double theta_max = 1.0   # theta_max
     cdef np.ndarray[double, ndim = 1] cur = np.copy(theta_cur)
     cdef np.ndarray[double, ndim = 1] temp = np.copy(theta_cur)
     cdef double log_r, r, u
@@ -320,13 +320,13 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         b_array[i] = (2*b_array[i])**(i+1)
     
     # initial values
-    theta = np.random.uniform(0.0, 2.0, size = (1, p-2)) # strength of interaction
+    theta = np.random.uniform(0.0, 1.0, size = (1, p-2)) # strength of interaction
     theta_cur = np.copy(theta[0])
     gamma_cur = 1.0*np.random.randint(2, size = (N, p))
     gamma_cur[:, 0:2] = 1.0
     gamma = np.array(gamma_cur[:, 2:4].T.flatten(), ndmin = 2)   # indicator gamma
     
-    theta_test = np.random.uniform(0.0, 2.0, size = p-2)
+    theta_test = np.random.uniform(0.0, 1.0, size = p-2)
     gamma_test = 1.0*np.random.randint(2, size = (N, p))
     gamma_test[:, 0:2] = 1.0
     
