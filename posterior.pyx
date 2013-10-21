@@ -291,7 +291,7 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     elif temp[j] > theta_max or temp[j] < 0.0:
         cur[j] = cur[j]
     else:
-        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 1.2)/norm.pdf(temp[j], cur[j], 1.2))
+        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j+2], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 1.2)/norm.pdf(temp[j], cur[j], 1.2))
 #         log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
@@ -309,33 +309,37 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     
     cdef unsigned int thresh = 1000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
-    cdef unsigned int v, j
+    cdef unsigned int i, v, j, b
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test, gamma_std, theta_std
-    cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma
-    cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
-#     cdef double temp
+    cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma, b_array
+    cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p-2)
+    cdef double temp
 #     cdef dict gamma
+
+    b_array = np.ones(16)
+    for i in range(16):
+        b_array[i] = (2*b_array[i])**(i+1)
     
     # initial values
-    theta = np.random.uniform(0.0, 2.0, size = (1, p)) # strength of interaction
+    theta = np.random.uniform(0.0, 2.0, size = (1, p-2)) # strength of interaction
     theta_cur = np.copy(theta[0])
     gamma_cur = 1.0*np.random.randint(2, size = (N, p))
     gamma_cur[:, 0:2] = 1.0
     gamma = np.array(gamma_cur[:, 2:4].T.flatten(), ndmin = 2)   # indicator gamma
     
-    theta_test = np.random.uniform(0.0, 2.0, size = p)
+    theta_test = np.random.uniform(0.0, 2.0, size = p-2)
     gamma_test = 1.0*np.random.randint(2, size = (N, p))
     gamma_test[:, 0:2] = 1.0
     
     # pre-run ratio of normalizing constant
-    for j in range(p):
+    for j in range(p-2):
         log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_test, neigh, N, cov_m_inv, data, tp, design_m)
     
     with open(dirname+'/logconst.txt', 'w') as f_log_const:
         f_log_const.write(str(log_const))
     
     gamma_std = np.zeros((N*(p-2), 3))
-    theta_std = np.zeros((p, 3))
+    theta_std = np.zeros((p-2, 3))
     
     theta_std[:, 0] = theta[0, :]
     gamma_std[:, 0] = gamma[0, :]
@@ -346,28 +350,28 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
 #     comb = np.vstack((comb_cur, comb_cur))
 
-#     f_accept = open(dirname+'/accept.txt', 'w')
-#     f_accept.close()
+    f_accept = open(dirname+'/accept.txt', 'w')
+    f_accept.close()
             
     while 1:
         n += 1  # counts
-        
+                
         # update gamma
         for j in range(2, p):
             for v in range(N):
-                gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
+                gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j-2], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
         gamma = np.vstack([gamma, gamma_cur[:, 2:4].T.flatten()])
         
         # update theta
-        for j in range(p):
-#             temp = theta_cur[j]
+        for j in range(p-2):
+            temp = theta_cur[j]
             theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
-#             if temp == theta_cur[j]:
-#                 with open(dirname+'/accept.txt', 'a') as f_accept:
-#                     f_accept.write(str(0))
-#             else:
-#                 with open(dirname+'/accept.txt', 'a') as f_accept:
-#                     f_accept.write(str(1))
+            if temp == theta_cur[j]:
+                with open(dirname+'/accept.txt', 'a') as f_accept:
+                    f_accept.write(str(0))
+            else:
+                with open(dirname+'/accept.txt', 'a') as f_accept:
+                    f_accept.write(str(1))
         theta = np.vstack([theta, theta_cur])
 
         # update \bar{x_{n+1}}            
@@ -384,6 +388,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
               
         if n >= thresh:
             thresh += 1000
+            
+            b = max(np.where(b_array < n)[0])
             
 #             with open(dirname+'/n.txt', 'w') as f_n:
 #                 f_n.write(str(n))
