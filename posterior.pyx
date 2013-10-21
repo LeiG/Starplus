@@ -307,7 +307,7 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
 #### MCMC updates ####
 cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 100000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 1000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test, gamma_std, theta_std
@@ -383,7 +383,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         
               
         if n >= thresh:
-            thresh += 10000
+            thresh += 1000
             
 #             with open(dirname+'/n.txt', 'w') as f_n:
 #                 f_n.write(str(n))
