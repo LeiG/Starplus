@@ -314,7 +314,6 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma, b_array
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p-2)
     cdef double temp
-#     cdef dict gamma
 
     b_array = np.ones(16)
     for i in range(16):
