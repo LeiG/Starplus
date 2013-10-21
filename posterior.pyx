@@ -310,7 +310,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int thresh = 100000  # threshold for checking mcmcse
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int v, j
-    cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test
+    cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test, gamma_std, theta_std
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p)
 #     cdef double temp
@@ -333,7 +333,13 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     
     with open(dirname+'/logconst.txt', 'w') as f_log_const:
         f_log_const.write(str(log_const))
-        
+    
+    gamma_std = np.zeros((N*(p-2), 3))
+    theta_std = np.zeros((p, 3))
+    
+    theta_std[:, 0] = theta[0, :]
+    gamma_std[:, 0] = gamma[0, :]
+    
 #     gamma = {0 : np.ones((N, p))}    # indicator gamma
 #     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
     
@@ -363,17 +369,26 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #                 with open(dirname+'/accept.txt', 'a') as f_accept:
 #                     f_accept.write(str(1))
         theta = np.vstack([theta, theta_cur])
-            
+
+        # update \bar{x_{n+1}}            
+        theta_std[:, 1] = theta_std[:, 0]+(theta[n, :]-theta_std[:, 0])/(n+1)
+        gamma_std[:, 1] = gamma_std[:, 0]+(gamma[n, :]-gamma_std[:, 0])/(n+1)
+
+        # update \bar{\sigma_{n+1}^2}
+        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta[n, :]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
+        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma[n, :]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
         
-        # evaluate mcse
-#         comb_cur = np.append(gamma_cur.flatten(), theta_cur.flatten())
-#         comb = np.vstack((comb, comb_cur))
+        theta_std[:, 0] = theta_std[:, 1]
+        gamma_std[:, 0] = gamma_std[:, 1]
+        
               
         if n >= thresh:
             thresh += 10000
             
-            with open(dirname+'/n.txt', 'w') as f_n:
-                f_n.write(str(n))
+#             with open(dirname+'/n.txt', 'w') as f_n:
+#                 f_n.write(str(n))
+
+            np.savetxt(dirname+'/n.txt', n)
             
             # write gamma in file
 #             with open(dirname+'/gamma.txt', 'w') as f_gamma:
@@ -382,8 +397,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #             with open(dirname+'/theta.txt', 'w') as f_theta:
 #                 pickle.dump(theta, f_theta)
             
-            np.save(dirname+'/gamma.txt', gamma)
-            np.save(dirname+'/theta.txt', theta)
+            np.save(dirname+'/gamma', gamma)
+            np.save(dirname+'/theta', theta)
 
                 
             mcse_theta = mcse(theta.T)
@@ -392,8 +407,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
 #             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
             
-            cond_theta = (mcse_theta[:, 0]*1.645 - 0.1*mcse_theta[:, 1])
-            cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.1*mcse_gamma[:, 1])
+            cond_theta = (mcse_theta[:, 0]*1.645 - 0.1*np.sqrt(theta_std[:, 2]))
+            cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.1*np.sqrt(gamma_std[:, 2]))
             
             np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
             np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
