@@ -285,13 +285,13 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     cdef np.ndarray[double, ndim = 1] temp = np.copy(theta_cur)
     cdef double log_r, r, u
     
-    temp[j] = np.random.normal(cur[j], 1.2)  # generate proposal r.v.
+    temp[j] = np.random.normal(cur[j], 0.3)  # generate proposal r.v.
     if cur[j] > theta_max or cur[j] < 0.0:
         cur[j] = temp[j]
     elif temp[j] > theta_max or temp[j] < 0.0:
         cur[j] = cur[j]
     else:
-        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j+2], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 1.2)/norm.pdf(temp[j], cur[j], 1.2))
+        log_r = log_const+log_Ising(temp[j]-cur[j], gamma_cur[:, j+2], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.3)/norm.pdf(temp[j], cur[j], 0.3))
 #         log_r = log_Ising(temp[j]-cur[j], gamma_cur[:, j], neigh, N, 0.0)+np.log(norm.pdf(cur[j], cur[j], 0.6)/norm.pdf(temp[j], temp[j], 0.6))
         if log_r > 0.0:
             r = 1.0
@@ -384,16 +384,18 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         theta_std[:, 0] = theta_std[:, 1]
         gamma_std[:, 0] = gamma_std[:, 1]
         
+        np.savetxt(dirname+'/n.txt', n)
+        
               
         if n >= thresh:
             thresh += 1000
             
-            b = max(np.where(b_array < n)[0])
+            b = 2**(max(np.where(b_array < n)[0])+1)
             
 #             with open(dirname+'/n.txt', 'w') as f_n:
 #                 f_n.write(str(n))
 
-            np.savetxt(dirname+'/n.txt', n)
+#             np.savetxt(dirname+'/n.txt', n)
             
             # write gamma in file
 #             with open(dirname+'/gamma.txt', 'w') as f_gamma:
