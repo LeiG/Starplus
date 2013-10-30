@@ -307,24 +307,35 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
 #### MCMC updates ####
 cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
     
-    cdef unsigned int thresh = 1000  # threshold for checking mcmcse
+    cdef unsigned int thresh = 0  # threshold (in batches) for checking mcmcse
     cdef unsigned int n = 0   # start simulation
-    cdef unsigned int i, v, j, b
-    cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, mcse_theta, mcse_gamma, gamma_test, gamma_std, theta_std
-    cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma, b_array
+    cdef unsigned int b_n = 1   # batch counts
+    cdef unsigned int i, v, j
+    cdef np.ndarray[int, ndim = 1] b
+    cdef double a
+    cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, gamma_test, gamma_std, theta_std, gamma_batch, theta_batch
+    cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma, b_array, mcse_theta, mcse_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p-2)
     cdef double temp
 
-    b_array = np.ones(16)
-    for i in range(16):
-        b_array[i] = (2*b_array[i])**(i+1)
+    b = (2**9)*np.ones(2, dtype = np.int)   # start to check at 2**(2*9)
+    b_array = np.ones(6)
+    for i in range(6):
+        b_array[i] = 2**(9+i)
     
     # initial values
-    theta = np.random.uniform(0.0, 1.0, size = (1, p-2)) # strength of interaction
-    theta_cur = np.copy(theta[0])
+#     theta = np.random.uniform(0.0, 1.0, size = (1, p-2)) # strength of interaction
+#     theta_cur = np.copy(theta[0])
+    theta_cur = np.random.uniform(0.0, 1.0, size = p-2)
     gamma_cur = 1.0*np.random.randint(2, size = (N, p))
     gamma_cur[:, 0:2] = 1.0
-    gamma = np.array(gamma_cur[:, 2:4].T.flatten(), ndmin = 2)   # indicator gamma
+#     gamma = np.array(gamma_cur[:, 2:p].T.flatten(), ndmin = 2)   # indicator gamma
+    
+    gamma_batch = np.empty((b[1], N*(p-2)))
+    theta_batch = np.empty((b[1], p-2))
+    
+    gamma_batch[0] = gamma_cur[:, 2:p].T.flatten()
+    theta_batch[0] = theta_cur
     
     theta_test = np.random.uniform(0.0, 1.0, size = p-2)
     gamma_test = 1.0*np.random.randint(2, size = (N, p))
@@ -340,14 +351,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     gamma_std = np.zeros((N*(p-2), 3))
     theta_std = np.zeros((p-2, 3))
     
-    theta_std[:, 0] = theta[0, :]
-    gamma_std[:, 0] = gamma[0, :]
-    
-#     gamma = {0 : np.ones((N, p))}    # indicator gamma
-#     gamma[0][:, 0:2] = 1  # first two columns are fixed one's
-    
-#     comb_cur = np.append(gamma[n].flatten(), theta[n].flatten())  # storage of all parameters
-#     comb = np.vstack((comb_cur, comb_cur))
+    theta_std[:, 0] = theta_batch[0]
+    gamma_std[:, 0] = gamma_batch[0]
 
     f_accept = open(dirname+'/accept.txt', 'w')
     f_accept.close()
@@ -359,7 +364,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         for j in range(2, p):
             for v in range(N):
                 gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j-2], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
-        gamma = np.vstack([gamma, gamma_cur[:, 2:4].T.flatten()])
+#         gamma = np.vstack([gamma, gamma_cur[:, 2:p].T.flatten()])
+        gamma_batch[b_n] = gamma_cur[:, 2:p].T.flatten()
         
         # update theta
         for j in range(p-2):
@@ -371,27 +377,62 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             else:
                 with open(dirname+'/accept.txt', 'a') as f_accept:
                     f_accept.write(str(1))
-        theta = np.vstack([theta, theta_cur])
+#         theta = np.vstack([theta, theta_cur])
+        theta_batch[b_n] = theta_cur
+                
 
         # update \bar{x_{n+1}}            
-        theta_std[:, 1] = theta_std[:, 0]+(theta[n, :]-theta_std[:, 0])/(n+1)
-        gamma_std[:, 1] = gamma_std[:, 0]+(gamma[n, :]-gamma_std[:, 0])/(n+1)
+        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/(n+1)
+        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/(n+1)
 
         # update \bar{\sigma_{n+1}^2}
-        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta[n, :]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
-        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma[n, :]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
+        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
+        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
         
         theta_std[:, 0] = theta_std[:, 1]
         gamma_std[:, 0] = gamma_std[:, 1]
         
+        
+        b_n += 1    # update batch count
+        
+        if b_n == b[1]:
+            b_n = 0
+            if thresh == 0:
+                gamma = np.array(np.average(gamma_batch, 0), ndmin = 2)
+                theta = np.array(np.average(theta_batch, 0), ndmin = 2)
+                thresh = 1
+            else:
+                gamma = np.vstack([gamma, np.average(gamma_batch, 0)])
+                theta = np.vstack([theta, np.average(theta_batch, 0)])
+                thresh += 1
+        
         np.savetxt(dirname+'/n.txt', n)
         
-              
-        if n >= thresh:
-            thresh += 1000
+
+        # check every 10 batch
+        if n >= 2**(2*9) and thresh == 10:
+            thresh = 1
             
-            b = 2**(max(np.where(b_array < n)[0])+1)
+            np.save(dirname+'/gamma', gamma)
+            np.save(dirname+'/theta', theta)
             
+            b[0] = b[1]
+            b[1] = 2**(max(np.where(b_array < n)[0])+1)
+            
+            if b[0] != b[1]:
+                gamma_batch = np.empty((b[1], N*(p-2)))
+                theta_batch = np.empty((b[1], p-2))
+                gamma = np.average(np.array(np.vsplit(gamma, gamma.shape[0]/2)), 1)
+                theta = np.average(np.array(np.vsplit(theta, theta.shape[0]/2)), 1)
+                
+            # calculate mcse
+            a = n/b[1]
+            np.savetxt(dirname+'/a.txt', a)
+            np.savetxt(dirname+'/size.txt', gamma.shape[0])
+            
+            mcse_gamma = np.sqrt(np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))
+            mcse_theta = np.sqrt(np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))
+
 #             with open(dirname+'/n.txt', 'w') as f_n:
 #                 f_n.write(str(n))
 
@@ -403,19 +444,15 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #             # write theta in file
 #             with open(dirname+'/theta.txt', 'w') as f_theta:
 #                 pickle.dump(theta, f_theta)
-            
-            np.save(dirname+'/gamma', gamma)
-            np.save(dirname+'/theta', theta)
-
-                
-            mcse_theta = mcse(theta.T)
-            mcse_gamma = mcse(gamma.T)
+                            
+#             mcse_theta = mcse(theta.T)
+#             mcse_gamma = mcse(gamma.T)
             
 #             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
 #             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
             
-            cond_theta = (mcse_theta[:, 0]*1.645 - 0.1*np.sqrt(theta_std[:, 2]))
-            cond_gamma = (mcse_gamma[:, 0]*1.645 - 0.1*np.sqrt(gamma_std[:, 2]))
+            cond_theta = (mcse_theta*1.645 - 0.1*np.sqrt(theta_std[:, 2]))
+            cond_gamma = (mcse_gamma*1.645 - 0.1*np.sqrt(gamma_std[:, 2]))
             
             np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
             np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
