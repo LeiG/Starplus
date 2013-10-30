@@ -311,14 +311,14 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int n = 0   # start simulation
     cdef unsigned int b_n = 1   # batch counts
     cdef unsigned int i, v, j
-    cdef np.ndarray[int, ndim = 1] b
+    cdef np.ndarray[int, ndim = 1] b = (2**9)*np.ones(2, dtype = np.int)   # start to check at 2**(2*9)
     cdef double a
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, gamma_test, gamma_std, theta_std, gamma_batch, theta_batch
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma, b_array, mcse_theta, mcse_gamma
     cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p-2)
     cdef double temp
 
-    b = (2**9)*np.ones(2, dtype = np.int)   # start to check at 2**(2*9)
+    
     b_array = np.ones(6)
     for i in range(6):
         b_array[i] = 2**(9+i)
