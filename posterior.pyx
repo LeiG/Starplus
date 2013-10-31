@@ -48,7 +48,7 @@ def neighbor(int N, np.ndarray[double, ndim = 2] coord):
     cdef dict output = {} # dict for neighbor
     cdef int v, k
     cdef double dis = 0.0
-    cdef np.ndarray w = np.zeros([N, N], dtype = np.float)
+    cdef np.ndarray[double, ndim = 2] w = np.zeros((N, N))
     
     for v from 0 <= v < N:
         for k from 0 <= k < v:
