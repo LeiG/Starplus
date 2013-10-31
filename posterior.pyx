@@ -379,17 +379,17 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #         theta = np.vstack([theta, theta_cur])
         theta_batch[b_n] = theta_cur
                 
-# 
-#         # update \bar{x_{n+1}}            
-#         theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/(n+1)
-#         gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/(n+1)
-# 
-#         # update \bar{\sigma_{n+1}^2}
-#         theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
-#         gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
-#         
-#         theta_std[:, 0] = theta_std[:, 1]
-#         gamma_std[:, 0] = gamma_std[:, 1]
+
+        # update \bar{x_{n+1}}            
+        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/(n+1)
+        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/(n+1)
+
+        # update \bar{\sigma_{n+1}^2}
+        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
+        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
+        
+        theta_std[:, 0] = theta_std[:, 1]
+        gamma_std[:, 0] = gamma_std[:, 1]
         
         
         b_n += 1    # update batch count
@@ -405,7 +405,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 theta = np.vstack([theta, np.average(theta_batch, 0)])
                 thresh += 1
         
-        np.savetxt(dirname+'/n.txt', n)
+        np.savetxt(dirname+'/n.txt', [n])
         
 
         # check every 20 batch
@@ -426,8 +426,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 
             # calculate mcse
             a = n/b[1]
-            np.savetxt(dirname+'/a.txt', a)
-            np.savetxt(dirname+'/size.txt', gamma.shape[0])
+            np.savetxt(dirname+'/a.txt', [a])
+            np.savetxt(dirname+'/size.txt', [gamma.shape[0]])
             
             mcse_gamma = np.sqrt(np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))
             mcse_theta = np.sqrt(np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))
