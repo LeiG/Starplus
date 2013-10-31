@@ -408,8 +408,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         np.savetxt(dirname+'/n.txt', n)
         
 
-        # check every 10 batch
-        if n >= 2**(2*9) and thresh == 10:
+        # check every 20 batch
+        if n >= 2**(2*9) and thresh >= 20:
             thresh = 1
             
             np.save(dirname+'/gamma', gamma)
