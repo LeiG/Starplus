@@ -223,7 +223,7 @@ cpdef np.ndarray[double, ndim = 2] S(int v, np.ndarray[double, ndim = 2] cov_inv
     return output
 
 # update gamma
-cpdef double update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef double update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[int, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
