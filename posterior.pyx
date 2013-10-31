@@ -7,7 +7,7 @@ Posterior analysis for hierarchical model of fMRI data
 
 #cython:boundscheck(False)
 #cython:wraparound(False)
-
+#defining NPY_NO_DEPRECATED_API NPY_1_7_1
 
 import numpy as np
 cimport numpy as np
@@ -21,32 +21,32 @@ import pickle
 from scipy.stats import norm
 
 #### mcmcse.mcse function ####
-cpdef np.ndarray[double, ndim = 2] mcse(np.ndarray[double, ndim = 2] y):
-    
-    cdef unsigned int length = y.shape[1]
-    cdef unsigned int dim = y.shape[0]
-    cdef unsigned int b = np.int(np.sqrt(length))
-    cdef unsigned int a = length//b
-    cdef unsigned int d, k
-    cdef np.ndarray batch = np.zeros([dim, a], dtype = np.float)
-    cdef np.ndarray mu_hat = np.zeros([dim, 1], dtype = np.float)
-    cdef np.ndarray se_hat = np.zeros([dim, 2], dtype = np.float)    
-    
-    for d in range(dim):
-        for k in range(a):
-            batch[d, k] = np.mean(y[d, (k*b):((k+1)*b)]) 
-        mu_hat[d] = np.mean(batch[d])
-        se_hat[d, 0] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1)) #mcmc se
-        se_hat[d, 1] = np.std(y[d]) # std
-        
-    return se_hat
+# cpdef np.ndarray[double, ndim = 2] mcse(np.ndarray[double, ndim = 2] y):
+#     
+#     cdef unsigned int length = y.shape[1]
+#     cdef unsigned int dim = y.shape[0]
+#     cdef unsigned int b = np.int(np.sqrt(length))
+#     cdef unsigned int a = length//b
+#     cdef unsigned int d, k
+#     cdef np.ndarray batch = np.zeros([dim, a], dtype = np.float)
+#     cdef np.ndarray mu_hat = np.zeros([dim, 1], dtype = np.float)
+#     cdef np.ndarray se_hat = np.zeros([dim, 2], dtype = np.float)    
+#     
+#     for d in range(dim):
+#         for k in range(a):
+#             batch[d, k] = np.mean(y[d, (k*b):((k+1)*b)]) 
+#         mu_hat[d] = np.mean(batch[d])
+#         se_hat[d, 0] = np.sqrt(b*np.sum((batch[d] - mu_hat[d])**2)/(a - 1)) #mcmc se
+#         se_hat[d, 1] = np.std(y[d]) # std
+#         
+#     return se_hat
 
 
 #### neighborhood structure ####
-def neighbor(unsigned int N, np.ndarray[double, ndim = 2] coord):
+def neighbor(int N, np.ndarray[double, ndim = 2] coord):
 
     cdef dict output = {} # dict for neighbor
-    cdef unsigned int v, k
+    cdef int v, k
     cdef double dis = 0.0
     cdef np.ndarray w = np.zeros([N, N], dtype = np.float)
     
@@ -70,13 +70,13 @@ def loglike_ar1(np.ndarray[double, ndim = 1] x, np.ndarray[double, ndim = 1] y):
 
     cdef double rho = x[0]
     cdef double sig = x[1]
-    cdef unsigned int T_int = len(y)
+    cdef int T_int = len(y)
     cdef double T = np.float(T_int)
     cdef double part_1 = 0.0
     cdef double part_2 = 0.0
     cdef double part_3 = 0.0
     cdef np.ndarray[double, ndim = 2] hess = np.zeros((2, 2), dtype = np.float)
-    cdef unsigned int i
+    cdef int i
     cdef double loglikelihood, der_rho, der_sig
     
     for i in range(T_int - 1):
@@ -114,9 +114,9 @@ def Newton(np.ndarray[double, ndim = 1] x_0, np.ndarray[double, ndim = 1] data):
     return y_new
     
 # MLE for rho and sigma
-def rhosig_mle(np.ndarray[double, ndim = 2] data, unsigned int N):
+def rhosig_mle(np.ndarray[double, ndim = 2] data, int N):
 
-    cdef unsigned int v
+    cdef int v
     cdef np.ndarray output = np.zeros((N, 2), dtype = np.float)
     cdef np.ndarray x_0 = np.array([0.0, 1.0])
     
@@ -127,9 +127,9 @@ def rhosig_mle(np.ndarray[double, ndim = 2] data, unsigned int N):
     
     
 #### covariance matrix ####
-def cov_matrix(np.ndarray[double, ndim = 1] rho, unsigned int N, unsigned int tp):
+def cov_matrix(np.ndarray[double, ndim = 1] rho, int N, int tp):
     
-    cdef unsigned int v, i, j
+    cdef int v, i, j
     cdef np.ndarray cov = np.zeros([tp, tp], dtype = np.float)
     cdef np.ndarray output = np.zeros([N, tp, tp], dtype = np.float)
     cdef np.ndarray output_inv = np.zeros([N, tp, tp], dtype = np.float)
@@ -149,7 +149,7 @@ def cov_matrix(np.ndarray[double, ndim = 1] rho, unsigned int N, unsigned int tp
 def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):
     
     cdef np.ndarray[double, ndim = 1] output = np.arange(np.float(np.size(sti)))
-    cdef unsigned int value, i
+    cdef int value, i
     
     for value in output:
         output[value] = 0.0
@@ -157,14 +157,14 @@ def conv(np.ndarray[double, ndim = 1] hrf, np.ndarray[double, ndim = 1] sti):
             output[value] += hrf[i]*sti[value - i]
     return output
     
-cpdef np.ndarray[double, ndim = 2] design(unsigned int tp, double press):
+cpdef np.ndarray[double, ndim = 2] design(int tp, double press):
     
     cdef np.ndarray sti_0 = np.zeros(tp, dtype = np.float)
     cdef np.ndarray sti_1 = np.zeros(tp, dtype = np.float)
     cdef np.ndarray sti_2 = np.zeros(tp, dtype = np.float)
     cdef np.ndarray hrf = np.zeros(tp, dtype = np.float)
     cdef np.ndarray t = np.arange(0, np.float(tp)/2.0, 0.5)
-    cdef unsigned int tt
+    cdef int tt
     cdef double t_press = min(12.0, press)
     cdef np.ndarray output = np.zeros((tp, 4), dtype = np.float)
 
@@ -194,10 +194,10 @@ cpdef np.ndarray[double, ndim = 2] design(unsigned int tp, double press):
 
 
 #### Ising prior ####
-cpdef double log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, unsigned int N, double a):
+cpdef double log_Ising(double theta, np.ndarray[double, ndim = 1] gamma, dict neigh, int N, double a):
     
     cdef double output = 0.0
-    cdef unsigned int v, k
+    cdef int v, k
     
     for v in range(N):
         output += a*gamma[v]
@@ -223,13 +223,13 @@ cpdef np.ndarray[double, ndim = 2] S(int v, np.ndarray[double, ndim = 2] cov_inv
     return output
 
 # update gamma
-cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef double update_gamma(int v, int j, np.ndarray[double, ndim = 2] gamma_cur, double theta_cur, np.ndarray[long, ndim = 1] neigh, np.ndarray[double, ndim = 2] cov_m_inv, np.ndarray[double, ndim = 1] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef np.ndarray[double, ndim = 2] cur = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 2] temp = np.copy(gamma_cur)
     cdef double prop_part = -0.1*cur[v, j]
     cdef double r, u, S1, S2
-    cdef unsigned int k
+    cdef int k
     
     for k in neigh:
         prop_part += theta_cur*(1.0-2.0*cur[k, j])
@@ -246,7 +246,7 @@ cpdef double update_gamma(unsigned int v, unsigned int j, np.ndarray[double, ndi
     return cur[v, j]
     
 # log ratio of normalizing constant by path sampling
-cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, unsigned int N, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m):
+cpdef double log_const_ratio(int j, np.ndarray[double, ndim = 1] cur, np.ndarray[double, ndim = 1] temp, np.ndarray[double, ndim = 2] gamma_cur, dict neigh, int N, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m):
     
     cdef double low = min(cur[j], temp[j])
     cdef double high = max(cur[j], temp[j])
@@ -254,7 +254,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
     cdef np.ndarray[double, ndim = 2] gamma_path = np.copy(gamma_cur)
     cdef np.ndarray[double, ndim = 1] theta_path = np.copy(temp)
     cdef unsigned int iter = 0
-    cdef unsigned int v, k
+    cdef int v, k
     cdef double output
 #     cdef double prop_part = 0.0
     cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow, ndmin = 1)
@@ -278,7 +278,7 @@ cpdef double log_const_ratio(unsigned int j, np.ndarray[double, ndim = 1] cur, n
         return -output
 
 # update theta
-cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, double log_const, dict neigh, unsigned int N):
+cpdef double update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, double log_const, dict neigh, int N):
         
     cdef double theta_max = 1.0   # theta_max
     cdef np.ndarray[double, ndim = 1] cur = np.copy(theta_cur)
@@ -305,12 +305,12 @@ cpdef double update_theta(unsigned int j, np.ndarray[double, ndim = 1] theta_cur
     
     
 #### MCMC updates ####
-cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, unsigned int p, unsigned int N, bytes dirname):
+cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
     
-    cdef unsigned int thresh = 0  # threshold (in batches) for checking mcmcse
+    cdef int thresh = 0  # threshold (in batches) for checking mcmcse
     cdef unsigned int n = 0   # start simulation
-    cdef unsigned int b_n = 1   # batch counts
-    cdef unsigned int i, v, j
+    cdef int b_n = 1   # batch counts
+    cdef int i, v, j
     cdef np.ndarray[int, ndim = 1] b = (2**9)*np.ones(2, dtype = np.int)   # start to check at 2**(2*9)
     cdef double a
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, gamma_test, gamma_std, theta_std, gamma_batch, theta_batch
@@ -417,7 +417,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             np.save(dirname+'/theta', theta)
             
             b[0] = b[1]
-            b[1] = 2**(max(np.where(b_array < n)[0])+1)
+            b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+9)
             
             if b[0] != b[1]:
                 gamma_batch = np.empty((b[1], N*(p-2)))
