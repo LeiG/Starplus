@@ -272,10 +272,12 @@ cpdef double log_const_ratio(int j, np.ndarray[double, ndim = 1] cur, np.ndarray
         sample = np.append(sample, (log_Ising(theta_path[j], gamma_path[:, j+2], neigh, N, 0.0)/highlow))
         
     output = np.average(sample)
-    if cur[j] > temp[j]:
-        return output
-    else:
-        return -output
+#     if cur[j] > temp[j]:
+#         return output
+#     else:
+#         return -output
+    return output
+    
 
 # update theta
 cpdef double update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndarray[double, ndim = 2] gamma_cur, double log_const, dict neigh, int N):
