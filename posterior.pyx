@@ -172,14 +172,14 @@ cpdef np.ndarray[double, ndim = 2] design(int tp, double press):
         if t[tt] == 0.0:
             sti_0[tt] = 1.0
         else:
-            sti_1[tt] = 0.0
+            sti_0[tt] = 0.0
         
         if t[tt] <= 4.0 and t[tt] >= 0.0:
             sti_1[tt] = 1.0
         else:
             sti_1[tt] = 0.0
             
-        if t[tt] > 8.0 and t[tt] <= t_press:
+        if t[tt] >= 8.0 and t[tt] <= t_press:
             sti_2[tt] = 1.0
         else:
             sti_2[tt] = 0.0
@@ -408,8 +408,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         np.savetxt(dirname+'/n.txt', [n])
         
 
-        # check every 20 batch
-        if n >= 2**(2*9) and thresh >= 20:
+        # check every 20 or 21 batch
+        if n >= 2**(2*9) and thresh >= 20 and gamma.shape[0]%2 == 0:
             thresh = 1
             
             np.save(dirname+'/gamma', gamma)
@@ -418,6 +418,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             b[0] = b[1]
             b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+9)
             
+            # merge if batch size change
             if b[0] != b[1]:
                 gamma_batch = np.empty((b[1], N*(p-2)))
                 theta_batch = np.empty((b[1], p-2))
@@ -426,8 +427,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 
             # calculate mcse
             a = n/b[1]
-            np.savetxt(dirname+'/a.txt', [a])
-            np.savetxt(dirname+'/size.txt', [gamma.shape[0]])
+#             np.savetxt(dirname+'/a.txt', [a])
+#             np.savetxt(dirname+'/size.txt', [gamma.shape[0]])
             
             mcse_gamma = np.sqrt(np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))
             mcse_theta = np.sqrt(np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))
