@@ -257,7 +257,7 @@ cpdef double log_const_ratio(int j, np.ndarray[double, ndim = 1] cur, np.ndarray
     cdef int v, k
     cdef double output
 #     cdef double prop_part = 0.0
-    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.1)/highlow, ndmin = 1)
+    cdef np.ndarray[double, ndim = 1] sample = np.array(log_Ising(theta_path[j], gamma_path[:, j+2], neigh, N, 0.1)/highlow, ndmin = 1)
     
     while iter < 100000:
         iter += 1   # iterations
@@ -267,9 +267,9 @@ cpdef double log_const_ratio(int j, np.ndarray[double, ndim = 1] cur, np.ndarray
 #             for k in neigh[v]:
 #                 prop_part += theta_path*(1.0-2.0*gamma_path[k, j])
 #             gamma_path[v, j] = np.random.binomial(1, (1.0/(1.0+np.exp(prop_part))))
-            gamma_path[v, j] = update_gamma(v, j, gamma_path, theta_path[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m)
+            gamma_path[v, j+2] = update_gamma(v, j+2, gamma_path, theta_path[j], neigh[v], cov_m_inv[v], data[:, v], tp, design_m)
             
-        sample = np.append(sample, (log_Ising(theta_path[j], gamma_path[:, j], neigh, N, 0.0)/highlow))
+        sample = np.append(sample, (log_Ising(theta_path[j], gamma_path[:, j+2], neigh, N, 0.0)/highlow))
         
     output = np.average(sample)
     if cur[j] > temp[j]:
@@ -308,7 +308,7 @@ cpdef double update_theta(int j, np.ndarray[double, ndim = 1] theta_cur, np.ndar
 cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
     
     cdef int thresh = 0  # threshold (in batches) for checking mcmcse
-    cdef unsigned int n = 0   # start simulation
+    cdef unsigned int n = 1   # start simulation
     cdef int b_n = 1   # batch counts
     cdef int i, v, j
     cdef np.ndarray[long, ndim = 1] b = (2**9)*np.ones(2, dtype = np.int)   # start to check at 2**(2*9)
@@ -381,12 +381,12 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 
 
         # update \bar{x_{n+1}}            
-        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/(n+1)
-        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/(n+1)
+        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/n
+        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/n
 
         # update \bar{\sigma_{n+1}^2}
-        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
-        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
+        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/n
+        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/n
         
         theta_std[:, 0] = theta_std[:, 1]
         gamma_std[:, 0] = gamma_std[:, 1]
