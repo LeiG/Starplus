@@ -355,8 +355,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     theta_std[:, 0] = theta_batch[0]
     gamma_std[:, 0] = gamma_batch[0]
 
-    f_accept = open(dirname+'/accept.txt', 'w')
-    f_accept.close()
+#     f_accept = open(dirname+'/accept.txt', 'w')
+#     f_accept.close()
             
     while 1:
         n += 1  # counts
@@ -370,14 +370,14 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         
         # update theta
         for j in range(p-2):
-            temp = theta_cur[j]
+#             temp = theta_cur[j]
             theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
-            if temp == theta_cur[j]:
-                with open(dirname+'/accept.txt', 'a') as f_accept:
-                    f_accept.write(str(0))
-            else:
-                with open(dirname+'/accept.txt', 'a') as f_accept:
-                    f_accept.write(str(1))
+#             if temp == theta_cur[j]:
+#                 with open(dirname+'/accept.txt', 'a') as f_accept:
+#                     f_accept.write(str(0))
+#             else:
+#                 with open(dirname+'/accept.txt', 'a') as f_accept:
+#                     f_accept.write(str(1))
 #         theta = np.vstack([theta, theta_cur])
         theta_batch[b_n] = theta_cur
                 
@@ -406,12 +406,13 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 gamma = np.vstack([gamma, np.average(gamma_batch, 0)])
                 theta = np.vstack([theta, np.average(theta_batch, 0)])
                 thresh += 1
-        
-        np.savetxt(dirname+'/n.txt', [n])
-        
+                
 
         # check every 20 or 21 batch
         if n >= 2**(2*9) and thresh >= 20 and gamma.shape[0]%2 == 0:
+        
+            np.savetxt(dirname+'/n.txt', [n])
+
             thresh = 1
             
             np.save(dirname+'/gamma', gamma)
