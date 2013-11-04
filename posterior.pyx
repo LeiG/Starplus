@@ -418,6 +418,10 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             np.save(dirname+'/gamma', gamma)
             np.save(dirname+'/theta', theta)
             
+            np.save(dirname+'/gamma_var', gamma_std[0:, 2])
+            np.save(dirname+'/theta_var', theta_std[0:, 2])
+            
+            
             b[0] = b[1]
             b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+9)
             
