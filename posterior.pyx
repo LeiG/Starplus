@@ -357,6 +357,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 
 #     f_accept = open(dirname+'/accept.txt', 'w')
 #     f_accept.close()
+    f_an = open(dirname+'/an.txt', 'w')
+    f_an.close()
             
     while 1:
         n += 1  # counts
@@ -383,12 +385,12 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 
 
         # update \bar{x_{n+1}}            
-        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/n
-        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/n
+        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/(n+1)
+        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/(n+1)
 
         # update \bar{\sigma_{n+1}^2}
-        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/n
-        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/n
+        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
+        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
         
         theta_std[:, 0] = theta_std[:, 1]
         gamma_std[:, 0] = gamma_std[:, 1]
@@ -436,6 +438,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             a = n/b[1]
 #             np.savetxt(dirname+'/a.txt', [a])
 #             np.savetxt(dirname+'/size.txt', [gamma.shape[0]])
+            with open(dirname+'/an.txt', 'a') as f_an:
+                np.savetxt(f_an, [a, b[1]])                
             
             mcse_gamma = np.sqrt(np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))
             mcse_theta = np.sqrt(np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))
