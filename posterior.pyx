@@ -384,13 +384,13 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         theta_batch[b_n] = theta_cur
                 
 
-        # update \bar{x_{n+1}}            
-        theta_std[:, 1] = theta_std[:, 0]+(theta_batch[b_n]-theta_std[:, 0])/(n+1)
-        gamma_std[:, 1] = gamma_std[:, 0]+(gamma_batch[b_n]-gamma_std[:, 0])/(n+1)
+        # update \bar{x_n}            
+        theta_std[:, 1] = ((n-1)*theta_std[:, 0]+theta_batch[b_n])/n
+        gamma_std[:, 1] = ((n-1)*gamma_std[:, 0]+gamma_batch[b_n])/n
 
-        # update \bar{\sigma_{n+1}^2}
-        theta_std[:, 2] = theta_std[:, 2]+theta_std[:, 0]**2-theta_std[:, 1]**2+(theta_batch[b_n]**2-theta_std[:, 2]-theta_std[:, 0]**2)/(n+1)
-        gamma_std[:, 2] = gamma_std[:, 2]+gamma_std[:, 0]**2-gamma_std[:, 1]**2+(gamma_batch[b_n]**2-gamma_std[:, 2]-gamma_std[:, 0]**2)/(n+1)
+        # update \bar{\sigma_n^2}
+        theta_std[:, 2] = theta_std[:, 2]+n*(theta_std[:, 1]-theta_batch[b_n])**2/(n-1)
+        gamma_std[:, 2] = gamma_std[:, 2]+n*(gamma_std[:, 1]-gamma_batch[b_n])**2/(n-1)
         
         theta_std[:, 0] = theta_std[:, 1]
         gamma_std[:, 0] = gamma_std[:, 1]
