@@ -441,8 +441,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             with open(dirname+'/an.txt', 'a') as f_an:
                 np.savetxt(f_an, [a, b[1]])                
             
-            mcse_gamma = np.sqrt(np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))
-            mcse_theta = np.sqrt(np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))
+            mcse_gamma = np.sqrt((np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))/n)
+            mcse_theta = np.sqrt((np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))/n)
 
 #             with open(dirname+'/n.txt', 'w') as f_n:
 #                 f_n.write(str(n))
@@ -462,8 +462,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #             cond_theta = (mcse_theta[:, 0]*1.645+1.0/n - 0.1*mcse_theta[:, 1])
 #             cond_gamma = (mcse_gamma[:, 0]*1.645+1.0/n - 0.1*mcse_gamma[:, 1])
             
-            cond_theta = (mcse_theta*1.645 - 0.1*np.sqrt(theta_std[:, 2]/(n-1)))
-            cond_gamma = (mcse_gamma*1.645 - 0.1*np.sqrt(gamma_std[:, 2]/(n-1)))
+            cond_theta = (2*mcse_theta*1.96 - 0.02*np.sqrt(theta_std[:, 2]/(n-1)))
+            cond_gamma = (2*mcse_gamma*1.96 - 0.02*np.sqrt(gamma_std[:, 2]/(n-1)))
             
             np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
             np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
