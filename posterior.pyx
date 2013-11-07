@@ -357,8 +357,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 
 #     f_accept = open(dirname+'/accept.txt', 'w')
 #     f_accept.close()
-    f_an = open(dirname+'/an.txt', 'w')
-    f_an.close()
+#     f_an = open(dirname+'/an.txt', 'w')
+#     f_an.close()
             
     while 1:
         n += 1  # counts
@@ -438,8 +438,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             a = n/b[1]
 #             np.savetxt(dirname+'/a.txt', [a])
 #             np.savetxt(dirname+'/size.txt', [gamma.shape[0]])
-            with open(dirname+'/an.txt', 'a') as f_an:
-                np.savetxt(f_an, [a, b[1]])                
+#             with open(dirname+'/an.txt', 'a') as f_an:
+#                 np.savetxt(f_an, [a, b[1]])                
             
             mcse_gamma = np.sqrt((np.sum((gamma - np.average(gamma, 0))**2, 0)*b[1]/(a-1))/n)
             mcse_theta = np.sqrt((np.sum((theta - np.average(theta, 0))**2, 0)*b[1]/(a-1))/n)

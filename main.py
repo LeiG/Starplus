@@ -43,8 +43,12 @@ def main():
     tr = 3-1  # inference for the third trail    P -> S
     totdata = raw[tr, 0]   # total abstracted data
     totN = totdata.shape[1]  # total number of voxels
-    G = ['CALC']
-    voi = [v for v in xrange(totN) if roi[v] in G] # voxels of interests
+    
+#     G = ['CALC']
+#     voi = [v for v in xrange(totN) if roi[v] in G] # voxels of interests
+
+    voi = [v for v in xrange(totN)] # all voxels
+    
     
     # set parameters
     press = (action[tr][0][0] > 0)*(action[tr][0][0]/1000.0+8.0)+(action[tr][0][0] == 0)*(4.0+8.0)  # second stimulus on the screen
