@@ -44,10 +44,10 @@ def main():
     totN = totdata.shape[1]  # total number of voxels
     
 #     G = ['CALC']
-    G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']
-    voi = [v for v in xrange(totN) if roi[v] in G] # voxels of interests
+#     G = ['CALC','LIPL','LT','LTRIA','LOPER','LIPS','LDLPFC']
+#     voi = [v for v in xrange(totN) if roi[v] in G] # voxels of interests
 
-#     voi = [v for v in xrange(totN)] # all voxels
+    voi = [v for v in xrange(totN)] # all voxels
     
     
     # set parameters
