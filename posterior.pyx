@@ -477,3 +477,70 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
         f_done.write('done')
                 
     return 0 
+    
+    
+#### MCMC convergence diagnostic ####
+cpdef int mcmc_diag(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
+    
+    cdef int thresh = 10000  # threshold (in batches) for checking mcmcse
+    cdef int burnin = 1000  # burn-in period
+    cdef unsigned int n = 1   # start simulation
+    cdef int i, v, j
+    cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, gamma_test
+    cdef np.ndarray[double, ndim = 1] theta_cur, theta_test
+    cdef np.ndarray[double, ndim = 1] log_const = np.zeros(p-2)
+
+    
+    # container
+    gamma = np.empty((thresh, N*(p-2)))
+    theta = np.empty((thresh, p-2))
+    
+    # initial values
+    theta_cur = np.random.uniform(0.0, 1.0, size = p-2)
+    gamma_cur = 1.0*np.random.randint(2, size = (N, p))
+    gamma_cur[:, 0:2] = 1.0
+    
+    gamma[0] = gamma_cur[:, 2:p].T.flatten()
+    theta[0] = theta_cur
+    
+    theta_test = np.random.uniform(0.0, 1.0, size = p-2)
+    gamma_test = 1.0*np.random.randint(2, size = (N, p))
+    gamma_test[:, 0:2] = 1.0
+    
+    # pre-run ratio of normalizing constant
+    for j in range(p-2):
+        log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_test, neigh, N, cov_m_inv, data, tp, design_m)
+    
+    with open(dirname+'/logconst.txt', 'w') as f_log_const:
+        f_log_const.write(str(log_const))
+    
+            
+    while n < thresh:
+        n += 1  # counts
+                
+        # update gamma
+        for j in range(2, p):
+            for v in range(N):
+                gamma_cur[v, j] = update_gamma(v, j, gamma_cur, theta_cur[j-2], neigh[v], cov_m_inv[v], data[:, v], tp, design_m) # update gamma
+        gamma[n] = gamma_cur[:, 2:p].T.flatten()
+        
+        # update theta
+        for j in range(p-2):
+            theta_cur[j] = update_theta(j, theta_cur, gamma_cur, log_const[j], neigh, N)   # update theta
+        theta[n] = theta_cur
+    
+    np.savetxt(dirname+'/gamma.txt', gamma, delimiter=',')
+    np.savetxt(dirname+'/theta.txt', theta, delimiter=',')
+    
+    # discard burn-in period
+    gamma = gamma[burnin:, :]
+    theta = theta[burnin:, :]            
+    
+    np.savetxt(dirname+'/gamma_burnin.txt', gamma, delimiter=',')
+    np.savetxt(dirname+'/theta_burnin.txt', theta, delimiter=',')
+        
+        
+    with open(dirname+'/done.txt', 'w') as f_done:
+        f_done.write('done')
+                
+    return 0 
