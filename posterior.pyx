@@ -515,7 +515,7 @@ cpdef int mcmc_diag(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarr
         f_log_const.write(str(log_const))
     
             
-    while n < thresh:
+    while n < (thresh-1):
         n += 1  # counts
                 
         # update gamma
