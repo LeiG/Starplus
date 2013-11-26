@@ -482,8 +482,8 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
 #### MCMC convergence diagnostic ####
 cpdef int mcmc_diag(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.ndarray[double, ndim = 2] data, double tp, np.ndarray[double, ndim = 2] design_m, int p, int N, bytes dirname):
     
-    cdef int thresh = 100000  # threshold (in batches) for checking mcmcse
-    cdef int burnin = 10000  # burn-in period
+    cdef int thresh = 50000  # threshold (in batches) for checking mcmcse
+    cdef int burnin = 5000  # burn-in period
     cdef unsigned int n = 1   # start simulation
     cdef int i, v, j
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, gamma_test
