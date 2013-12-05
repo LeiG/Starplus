@@ -313,7 +313,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     cdef unsigned int n = 1   # start simulation
     cdef int b_n = 1   # batch counts
     cdef int i, v, j
-    cdef np.ndarray[long, ndim = 1] b = (2**9)*np.ones(2, dtype = np.int)   # start to check at 2**(2*9)
+    cdef np.ndarray[long, ndim = 1] b = (2**7)*np.ones(2, dtype = np.int)   # start to check at 2**(2*7)
     cdef double a
     cdef np.ndarray[double, ndim = 2] gamma_cur, gamma, theta, gamma_test, gamma_std, theta_std, gamma_batch, theta_batch
     cdef np.ndarray[double, ndim = 1] theta_cur, theta_test, cond_theta, cond_gamma, b_array, mcse_theta, mcse_gamma
@@ -322,7 +322,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
     
     b_array = np.ones(6)
     for i in range(6):
-        b_array[i] = 2**(9+i)
+        b_array[i] = 2**(7+i)
     
     # initial values
 #     theta = np.random.uniform(0.0, 1.0, size = (1, p-2)) # strength of interaction
@@ -411,7 +411,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
                 
 
         # check every 20 or 21 batch
-        if n >= 2**(2*9) and thresh >= 20 and gamma.shape[0]%2 == 0:
+        if n >= 2**(2*7) and thresh >= 20 and gamma.shape[0]%2 == 0:
         
             np.savetxt(dirname+'/n.txt', [n])
 
@@ -425,7 +425,7 @@ cpdef int mcmc_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np.nda
             
             
             b[0] = b[1]
-            b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+9)
+            b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+7)
             
             # merge if batch size change
             if b[0] != b[1]:

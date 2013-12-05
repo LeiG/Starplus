@@ -84,8 +84,8 @@ def main():
     design_m = posterior.design(tp, press)    # design matrix
     
     # update
-#     posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
-    posterior.mcmc_diag(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
+    posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
+#     posterior.mcmc_diag(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)
     
 
 if __name__ == '__main__':
