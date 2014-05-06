@@ -519,7 +519,7 @@ cpdef int mcmc_ess_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np
     for j in range(p-2):
         log_const[j] = log_const_ratio(j, theta_cur, theta_test, gamma_test, neigh, N, cov_m_inv, data, tp, design_m)
     
-    with open(dirname+'/ess_logconst.txt', 'w') as f_log_const:
+    with open(dirname+'/logconst.txt', 'w') as f_log_const:
         f_log_const.write(str(log_const))
     
     gamma_std = np.zeros((N*(p-2), 3))
@@ -586,15 +586,15 @@ cpdef int mcmc_ess_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np
         # check every 20 or 21 batch
         if n >= 2**(2*7) and thresh > 20 and gamma.shape[0]%2 == 0:
         
-            np.savetxt(dirname+'/ess_n.txt', [n])
+            np.savetxt(dirname+'/n.txt', [n])
 
             thresh = 1
             
-            np.save(dirname+'/ess_gamma', gamma)
-            np.save(dirname+'/ess_theta', theta)
+            np.save(dirname+'/gamma', gamma)
+            np.save(dirname+'/theta', theta)
             
-            np.save(dirname+'/ess_gamma_var', gamma_std[:, 2])
-            np.save(dirname+'/ess_theta_var', theta_std[:, 2])
+            np.save(dirname+'/gamma_var', gamma_std[:, 2])
+            np.save(dirname+'/theta_var', theta_std[:, 2])
             
             
             b[0] = b[1]
@@ -640,15 +640,15 @@ cpdef int mcmc_ess_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np
             cond_theta = (theta_std[:, 2]/(n-1))/(mcse_theta**2)
             cond_gamma = (gamma_std[:, 2]/(n-1))/(mcse_gamma**2)
             
-            np.savetxt(dirname+'/ess_cond_theta.txt', cond_theta, delimiter=',')
-            np.savetxt(dirname+'/ess_cond_gamma.txt', cond_gamma, delimiter=',')
+            np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
+            np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
             
             if np.all(cond_theta > 6147) and np.all(cond_gamma > 6147):
                 break
 #             if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
 #                 break
     
-    with open(dirname+'/ess_done.txt', 'w') as f_done:
+    with open(dirname+'/done.txt', 'w') as f_done:
         f_done.write('done')
                 
     return 0
