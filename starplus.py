@@ -61,9 +61,9 @@ sti_1 = np.vectorize(sti_1)   # vectorize
         
 def sti_2(t, press):  # second stimulus
     t_press = min(12, press)
-    if t > 8 and t <= t_press:
+    if t >= 8 and t <= t_press:
         return 1.0
-    if t <= 8 and t >= 0:
+    if t < 8 and t >= 0:
         return 0.0
     if t > t_press and t <= 27:
         return 0.0
@@ -76,6 +76,7 @@ def hrf(t): # HRF function scaled such that sum(hrf(t))=1 for t = np.arange(0, 2
     else:
         #return 1.0/111.8*(t**8.60)*np.exp(-t/0.547)
         return 5.6999155101700625*((t**5)*np.exp(-t)/gamma(6.0)-1/6.0*(t**15)*np.exp(-t)/gamma(16.0))/9.5187445708326752
+#         return 5.6999155101700625*((t**5)*np.exp(-t)/gamma(6.0)-1/6.0*(t**15)*np.exp(-t)/gamma(16.0))
                 
 hrf = np.vectorize(hrf) #vectorize
 
