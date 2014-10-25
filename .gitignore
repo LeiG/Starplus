@@ -1,2 +1,4 @@
 .pyc
 build/
+.DS_Store
+data-starplus-04847-v7.mat
