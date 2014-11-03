@@ -89,7 +89,7 @@ def main():
     # update
 #     posterior.mcmc_update(neigh, cov_m_inv, data, np.float(tp), design_m, p,
 #                           N, dirname)  #use fixedwidth stopping rule
-   posterior.mcmc_ess_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)  #use effective sample size
+    posterior.mcmc_ess_update(neigh, cov_m_inv, data, np.float(tp), design_m, p, N, dirname)  #use effective sample size
 #    posterior.mcmc_diag(neigh, cov_m_inv, data, np.float(tp), design_m, p, N,
 #                        dirname) # use Geweke diagnostics
 
