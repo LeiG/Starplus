@@ -612,7 +612,8 @@ cpdef int mcmc_ess_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np
 
 
             b[0] = b[1]
-            b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+7)
+#             b[1] = 2**(max(np.where(b_array <= np.sqrt(n))[0])+7) #lower bound
+            b[1] = 2**(min(np.where(b_array >= np.sqrt(n))[0])+7) #upper bound
 
             # merge if batch size change
             if b[0] != b[1]:
