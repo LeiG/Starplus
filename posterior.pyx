@@ -659,7 +659,7 @@ cpdef int mcmc_ess_update(dict neigh, np.ndarray[double, ndim = 3] cov_m_inv, np
             np.savetxt(dirname+'/cond_theta.txt', cond_theta, delimiter=',')
             np.savetxt(dirname+'/cond_gamma.txt', cond_gamma, delimiter=',')
 
-            if np.all(cond_theta > 4000) and np.all(cond_gamma > 4000):
+            if np.all(cond_theta >= 4000) and np.all(cond_gamma >= 4000):
                 break
 #             if np.prod(se*1.645+1.0/n < 0.1*ssd): # 90% and epsilon = 0.05
 #                 break
